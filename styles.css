@@ -354,8 +354,8 @@ body {
 
 .tree {
   position: relative;
-  width: 180px;
-  height: 180px;
+  width: 210px;
+  height: 200px;
 }
 
 .crown,
@@ -369,18 +369,29 @@ body {
   width: 12px;
   height: 12px;
   border-radius: 50% 0 50% 0;
-  background: linear-gradient(135deg, #85ef89 0%, #22c55e 100%);
+  background: linear-gradient(135deg, #7ae899 0%, #2fbf5f 100%);
   box-shadow: inset -2px -2px 0 rgba(14, 82, 38, 0.18);
   transform: rotate(26deg);
   opacity: 1;
-  transition: opacity 0.35s ease, transform 0.45s ease;
+  transition: opacity 0.35s ease, transform 0.45s ease, background 0.4s ease, box-shadow 0.4s ease;
 }
 
-.leaf-1 { left: 72px; top: 30px; }
-.leaf-2 { left: 98px; top: 42px; }
-.leaf-3 { left: 112px; top: 88px; }
-.leaf-4 { left: 58px; top: 86px; }
-.leaf-5 { left: 88px; top: 18px; }
+.leaf-1 { left: 74px; top: 28px; }
+.leaf-2 { left: 96px; top: 38px; }
+.leaf-3 { left: 118px; top: 52px; }
+.leaf-4 { left: 56px; top: 58px; }
+.leaf-5 { left: 82px; top: 16px; }
+.leaf-6 { left: 130px; top: 28px; }
+.leaf-7 { left: 64px; top: 88px; }
+.leaf-8 { left: 100px; top: 80px; }
+.leaf-9 { left: 136px; top: 94px; }
+.leaf-10 { left: 48px; top: 104px; }
+.leaf-11 { left: 84px; top: 110px; }
+.leaf-12 { left: 122px; top: 120px; }
+.leaf-13 { left: 30px; top: 72px; }
+.leaf-14 { left: 150px; top: 72px; }
+.leaf-15 { left: 108px; top: 18px; }
+.leaf-16 { left: 66px; top: 130px; }
 
 .leaf.is-hidden {
   opacity: 0;
@@ -408,8 +419,8 @@ body {
 
 @keyframes leafBlow {
   0% { transform: translate(0, 0) rotate(24deg) scale(1); opacity: 1; }
-  20% { transform: translate(12px, -10px) rotate(50deg) scale(1.05); }
-  100% { transform: translate(44px, -36px) rotate(120deg) scale(0.2); opacity: 0; }
+  20% { transform: translate(14px, -18px) rotate(58deg) scale(1.08); }
+  100% { transform: translate(60px, -50px) rotate(150deg) scale(0.18); opacity: 0; }
 }
 
 .crown {
@@ -423,44 +434,50 @@ body {
   box-shadow: inset -5px -6px 0 rgba(23, 91, 62, 0.12);
 }
 
-.crown-1 { left: 24px; bottom: 66px; }
-.crown-2 { left: 62px; bottom: 84px; }
-.crown-3 { left: 95px; bottom: 66px; }
-.crown-4 { left: 50px; bottom: 100px; }
-.crown-5 { left: 82px; bottom: 100px; }
+.crown-1 { left: 24px; bottom: 74px; }
+.crown-2 { left: 52px; bottom: 98px; }
+.crown-3 { left: 90px; bottom: 108px; }
+.crown-4 { left: 122px; bottom: 86px; }
+.crown-5 { left: 66px; bottom: 70px; }
+.crown-6 { left: 108px; bottom: 58px; }
+.crown-7 { left: 30px; bottom: 110px; }
 
 .trunk {
   left: 50%;
   bottom: 0;
   width: 24px;
-  height: 72px;
+  height: 78px;
   transform: translateX(-50%);
   border-radius: 10px 10px 6px 6px;
   background: linear-gradient(180deg, #a56c43 0%, var(--trunk) 100%);
   box-shadow: inset -4px 0 0 rgba(0,0,0,0.08);
 }
 
-.tree-thriving .crown {
-  background: linear-gradient(180deg, #86efac 0%, #22c55e 100%);
+.tree-thriving .crown,
+.tree-thriving .leaf {
+  background: linear-gradient(135deg, #a9f3a8 0%, #3bbd63 100%);
   opacity: 1;
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), inset -5px -6px 0 rgba(16, 72, 31, 0.12);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.38), inset -5px -6px 0 rgba(16, 72, 31, 0.12);
 }
 
-.tree-healthy .crown {
-  background: linear-gradient(180deg, #b9fbc0 0%, #4ec76d 100%);
+.tree-healthy .crown,
+.tree-healthy .leaf {
+  background: linear-gradient(135deg, #d9fdbd 0%, #59c66a 100%);
   opacity: 0.9;
   box-shadow: 0 0 14px rgba(78, 199, 109, 0.3), inset -5px -6px 0 rgba(15, 71, 51, 0.08);
 }
 
-.tree-stressed .crown {
-  background: linear-gradient(180deg, #f7d58b 0%, #d97706 100%);
-  opacity: 0.72;
+.tree-stressed .crown,
+.tree-stressed .leaf {
+  background: linear-gradient(135deg, #f8d987 0%, #d97706 100%);
+  opacity: 0.86;
   box-shadow: 0 0 12px rgba(217,119,6,0.2), inset -5px -6px 0 rgba(102, 54, 12, 0.08);
 }
 
-.tree-empty .crown {
-  background: linear-gradient(180deg, #d6d3d1 0%, #9ca3af 100%);
-  opacity: 0.35;
+.tree-empty .crown,
+.tree-empty .leaf {
+  background: linear-gradient(135deg, #d6d3d1 0%, #9ca3af 100%);
+  opacity: 0.4;
 }
 
 .health-meter-wrap {
