@@ -23,11 +23,30 @@ const logoutBtn = document.getElementById('logout-btn')
 const forgotBtn = document.getElementById('forgot-btn')
 
 let transactions = []
+let autoRefreshTimer = null
+
+function startAutoRefresh(){
+  if (autoRefreshTimer) return
+  autoRefreshTimer = setInterval(() => {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (token && document.visibilityState === 'visible') {
+      loadFromApi().catch(() => {})
+    }
+  }, 4000)
+}
+
+function stopAutoRefresh(){
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer)
+    autoRefreshTimer = null
+  }
+}
 
 async function init(){
   const token = localStorage.getItem(TOKEN_KEY)
   if(token) {
     setAuthedUI(true)
+    startAutoRefresh()
     await loadFromApi()
   } else {
     transactions = loadTransactions()
@@ -418,12 +437,14 @@ function setAuthedUI(authed){
     loginBtn.style.display = 'none'
     registerBtn.style.display = 'none'
     logoutBtn.style.display = 'inline-block'
+    startAutoRefresh()
   } else {
     usernameEl.style.display = ''
     passwordEl.style.display = ''
     loginBtn.style.display = ''
     registerBtn.style.display = ''
     logoutBtn.style.display = 'none'
+    stopAutoRefresh()
   }
 }
 

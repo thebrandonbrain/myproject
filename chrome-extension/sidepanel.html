@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Budgiet Sidebar</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <div class="panel">
+      <div class="header">
+        <div>
+          <div class="eyebrow">Quick add</div>
+          <h1>Budgiet</h1>
+        </div>
+        <button id="logout-btn" class="ghost hidden">Log out</button>
+      </div>
+
+      <form id="login-form" class="card">
+        <h2>Log in</h2>
+        <label>
+          Username
+          <input id="username" type="text" autocomplete="username" placeholder="your username" />
+        </label>
+        <label>
+          Password
+          <input id="password" type="password" autocomplete="current-password" placeholder="your password" />
+        </label>
+        <button type="submit" class="primary">Use my Budgiet account</button>
+      </form>
+
+      <form id="add-form" class="card hidden">
+        <h2>Add entry</h2>
+        <label>
+          Description
+          <input id="description" type="text" maxlength="80" placeholder="Groceries, rent, salary..." />
+        </label>
+        <label>
+          Amount
+          <input id="amount" type="number" min="0.01" step="0.01" placeholder="0.00" />
+        </label>
+        <label>
+          Type
+          <select id="type">
+            <option value="expense">Expense</option>
+            <option value="income">Savings / Income</option>
+          </select>
+        </label>
+        <button type="submit" class="primary">Add to budget</button>
+      </form>
+
+      <div id="status" class="status" aria-live="polite"></div>
+      <div class="summary">
+        <div>
+          <span>Income</span>
+          <strong id="income">$0.00</strong>
+        </div>
+        <div>
+          <span>Expenses</span>
+          <strong id="expenses">$0.00</strong>
+        </div>
+        <div>
+          <span>Balance</span>
+          <strong id="balance">$0.00</strong>
+        </div>
+      </div>
+    </div>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>
