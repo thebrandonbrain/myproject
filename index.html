@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Budgiet</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="title-wrap">
+        <div class="budgie-header">
+          <svg class="budgie-icon" viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="20" cy="22" r="12" fill="#7ee787"/>
+            <circle cx="31" cy="26" r="10" fill="#6ee7b7"/>
+            <circle cx="40" cy="22" r="12" fill="#a7f3d0"/>
+            <circle cx="38" cy="28" r="2.5" fill="#1f2937"/>
+            <path d="M45 28 L58 24 L58 31 L46 33 Z" fill="#fbbf24"/>
+            <path d="M19 31 L28 40 L20 48 L12 40 Z" fill="#7dd3fc"/>
+            <path d="M38 31 L47 40 L39 49 L31 39 Z" fill="#93c5fd"/>
+            <path d="M8 38 Q22 32 33 40 Q46 49 56 39" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+            <path d="M18 20 L12 15 L15 23 Z" fill="#f59e0b"/>
+            <path d="M41 20 L47 14 L44 23 Z" fill="#f59e0b"/>
+          </svg>
+          <div>
+            <h1>Budgiet</h1>
+            <p class="tag">Budgeting with a little chirp</p>
+          </div>
+          <svg class="budgie-icon" viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="20" cy="22" r="12" fill="#7ee787"/>
+            <circle cx="31" cy="26" r="10" fill="#6ee7b7"/>
+            <circle cx="40" cy="22" r="12" fill="#a7f3d0"/>
+            <circle cx="38" cy="28" r="2.5" fill="#1f2937"/>
+            <path d="M45 28 L58 24 L58 31 L46 33 Z" fill="#fbbf24"/>
+            <path d="M19 31 L28 40 L20 48 L12 40 Z" fill="#7dd3fc"/>
+            <path d="M38 31 L47 40 L39 49 L31 39 Z" fill="#93c5fd"/>
+            <path d="M8 38 Q22 32 33 40 Q46 49 56 39" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+            <path d="M18 20 L12 15 L15 23 Z" fill="#f59e0b"/>
+            <path d="M41 20 L47 14 L44 23 Z" fill="#f59e0b"/>
+          </svg>
+        </div>
+      </div>
+      <div class="controls">
+        <div id="auth-area" class="auth-area">
+          <input id="username" placeholder="Username" />
+          <input id="password" type="password" placeholder="Password" />
+          <button id="login-btn">Login</button>
+          <button id="register-btn">Register</button>
+          <button id="logout-btn" style="display:none">Logout</button>
+          <div class="forgot-wrap">
+            <button id="forgot-btn" class="forgot-link" type="button">Forgot password?</button>
+          </div>
+        </div>
+        <button id="clear-btn" title="Clear all transactions">Clear All</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="summary">
+        <div class="card balance-card">
+          <div class="label">Balance</div>
+          <div id="balance" class="value">$0.00</div>
+        </div>
+        <div class="card income-card">
+          <div class="label">Income</div>
+          <div id="income" class="value">$0.00</div>
+        </div>
+        <div class="card expense-card">
+          <div class="label">Expenses</div>
+          <div id="expenses" class="value">$0.00</div>
+        </div>
+      </section>
+
+      <section class="budget-health" aria-label="Budget health tree">
+        <div class="tree-panel">
+          <div class="tree-stage">
+            <div class="budgie-scene" aria-hidden="true">
+              <div class="sound-wave sound-wave-1"></div>
+              <div class="sound-wave sound-wave-2"></div>
+              <div class="sound-wave sound-wave-3"></div>
+              <svg class="budgie budgie-1" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- tail -->
+                <path d="M 30 50 Q 10 40 0 60 Q 10 70 30 60 Z" fill="var(--tail-color)"/>
+                <!-- wing -->
+                <ellipse cx="45" cy="45" rx="18" ry="22" fill="var(--wing-color)" opacity="0.9"/>
+                <!-- body -->
+                <ellipse cx="60" cy="50" rx="22" ry="26" fill="var(--body-color)"/>
+                <!-- belly -->
+                <ellipse cx="60" cy="55" rx="16" ry="18" fill="var(--belly-color)"/>
+                <!-- head -->
+                <circle cx="75" cy="35" r="16" fill="var(--head-color)"/>
+                <!-- eye -->
+                <circle cx="82" cy="32" r="3" fill="#000" />
+                <circle cx="83" cy="31" r="1.5" fill="#fff"/>
+                <!-- beak -->
+                <path d="M 90 36 L 108 34 L 108 38 L 90 38 Z" fill="var(--beak-color)"/>
+                <!-- crest -->
+                <path d="M 72 20 Q 70 10 75 8 Q 78 10 76 20 Z" fill="var(--head-color)" opacity="0.8"/>
+              </svg>
+              <svg class="budgie budgie-2" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- tail -->
+                <path d="M 30 50 Q 10 40 0 60 Q 10 70 30 60 Z" fill="var(--tail-color)"/>
+                <!-- wing -->
+                <ellipse cx="45" cy="45" rx="18" ry="22" fill="var(--wing-color)" opacity="0.9"/>
+                <!-- body -->
+                <ellipse cx="60" cy="50" rx="22" ry="26" fill="var(--body-color)"/>
+                <!-- belly -->
+                <ellipse cx="60" cy="55" rx="16" ry="18" fill="var(--belly-color)"/>
+                <!-- head -->
+                <circle cx="75" cy="35" r="16" fill="var(--head-color)"/>
+                <!-- eye -->
+                <circle cx="82" cy="32" r="3" fill="#000" />
+                <circle cx="83" cy="31" r="1.5" fill="#fff"/>
+                <!-- beak -->
+                <path d="M 90 36 L 108 34 L 108 38 L 90 38 Z" fill="var(--beak-color)"/>
+                <!-- crest -->
+                <path d="M 72 20 Q 70 10 75 8 Q 78 10 76 20 Z" fill="var(--head-color)" opacity="0.8"/>
+              </svg>
+              <svg class="budgie budgie-3" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- tail -->
+                <path d="M 30 50 Q 10 40 0 60 Q 10 70 30 60 Z" fill="var(--tail-color)"/>
+                <!-- wing -->
+                <ellipse cx="45" cy="45" rx="18" ry="22" fill="var(--wing-color)" opacity="0.9"/>
+                <!-- body -->
+                <ellipse cx="60" cy="50" rx="22" ry="26" fill="var(--body-color)"/>
+                <!-- belly -->
+                <ellipse cx="60" cy="55" rx="16" ry="18" fill="var(--belly-color)"/>
+                <!-- head -->
+                <circle cx="75" cy="35" r="16" fill="var(--head-color)"/>
+                <!-- eye -->
+                <circle cx="82" cy="32" r="3" fill="#000" />
+                <circle cx="83" cy="31" r="1.5" fill="#fff"/>
+                <!-- beak -->
+                <path d="M 90 36 L 108 34 L 108 38 L 90 38 Z" fill="var(--beak-color)"/>
+                <!-- crest -->
+                <path d="M 72 20 Q 70 10 75 8 Q 78 10 76 20 Z" fill="var(--head-color)" opacity="0.8"/>
+              </svg>
+            </div>
+            <div id="tree" class="tree tree-empty" aria-live="polite">
+              <span class="leaf leaf-1"></span>
+              <span class="leaf leaf-2"></span>
+              <span class="leaf leaf-3"></span>
+              <span class="leaf leaf-4"></span>
+              <span class="leaf leaf-5"></span>
+              <span class="crown crown-1"></span>
+              <span class="crown crown-2"></span>
+              <span class="crown crown-3"></span>
+              <span class="crown crown-4"></span>
+              <span class="crown crown-5"></span>
+              <span class="trunk"></span>
+            </div>
+            <div class="health-meter-wrap">
+              <div class="health-meter-label">
+                <span>Budget health</span>
+                <strong id="tree-score">0%</strong>
+              </div>
+              <div class="health-meter">
+                <span id="health-fill" class="health-fill"></span>
+              </div>
+            </div>
+            <div id="tree-status" class="tree-status">Your tree is waiting for a healthy ratio.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="entry">
+        <form id="tx-form" class="form">
+          <input type="text" id="description" placeholder="Description (e.g., Salary, Coffee)" required>
+          <input type="number" id="amount" placeholder="Amount" step="0.01" required>
+          <select id="type">
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+          <button type="submit" class="add-btn">Add</button>
+        </form>
+      </section>
+
+      <section class="transactions">
+        <h2>Transactions</h2>
+        <ul id="transactions" class="tx-list"></ul>
+        <p id="empty" class="empty">No transactions yet. Add one above.</p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <small>Made with 💚 — Budgiet • happy little budget tree</small>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
