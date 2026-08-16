@@ -36,6 +36,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.expense-flash {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 30, 30, 0.82);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.expense-flash.active {
+  animation: screenFlash 0.7s ease-out forwards;
+}
+
+@keyframes screenFlash {
+  0% { opacity: 0; }
+  18% { opacity: 0.9; }
+  45% { opacity: 0.75; }
+  100% { opacity: 0; }
+}
+
 .app {
   max-width: 980px;
   margin: 0 auto;
@@ -298,6 +318,38 @@ body {
 @keyframes flutter {
   0%, 100% { transform: translateY(0) rotate(-4deg) scale(1); }
   50% { transform: translateY(-5px) rotate(4deg) scale(1.05); }
+}
+
+.danger-icons {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 240px;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.danger-heart {
+  font-size: 2.1rem;
+  opacity: 0;
+  transform: scale(0.2) rotate(-18deg);
+  filter: drop-shadow(0 0 8px rgba(255, 30, 30, 0.8));
+}
+
+.danger-heart-left { transform: translateX(-18px) scale(0.2) rotate(-18deg); }
+.danger-heart-right { transform: translateX(18px) scale(0.2) rotate(18deg); }
+
+.danger-heart.active {
+  animation: heartAlert 0.7s ease-out forwards;
+}
+
+@keyframes heartAlert {
+  0% { opacity: 0; transform: scale(0.2) rotate(-18deg); }
+  25% { opacity: 1; transform: scale(1.2) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(8deg); }
+  100% { opacity: 0; transform: scale(0.6) rotate(18deg); }
 }
 
 .tree {

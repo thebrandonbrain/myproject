@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div id="expense-flash" class="expense-flash" aria-hidden="true"></div>
   <div class="app">
     <header class="header">
       <div class="title-wrap">
@@ -136,6 +137,10 @@
                 <!-- crest -->
                 <path d="M 72 20 Q 70 10 75 8 Q 78 10 76 20 Z" fill="var(--head-color)" opacity="0.8"/>
               </svg>
+            </div>
+            <div class="danger-icons" aria-hidden="true">
+              <div class="danger-heart danger-heart-left">💔</div>
+              <div class="danger-heart danger-heart-right">💔</div>
             </div>
             <div id="tree" class="tree tree-empty" aria-live="polite">
               <span class="leaf leaf-1"></span>

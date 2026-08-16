@@ -83,6 +83,8 @@ function triggerExpenseAnimation() {
   const scene = document.querySelector('.budgie-scene')
   const tree = document.getElementById('tree')
   const waves = document.querySelectorAll('.sound-wave')
+  const flash = document.getElementById('expense-flash')
+  const dangerHearts = document.querySelectorAll('.danger-heart')
   if (!scene || !tree) return
 
   scene.classList.remove('expense-impact')
@@ -90,6 +92,10 @@ function triggerExpenseAnimation() {
   waves.forEach((wave) => {
     wave.classList.remove('active')
   })
+  dangerHearts.forEach((heart) => heart.classList.remove('active'))
+  if (flash) {
+    flash.classList.remove('active')
+  }
 
   void scene.offsetWidth
   scene.classList.add('expense-impact')
@@ -98,6 +104,14 @@ function triggerExpenseAnimation() {
     void wave.offsetWidth
     wave.classList.add('active')
   })
+  dangerHearts.forEach((heart) => {
+    void heart.offsetWidth
+    heart.classList.add('active')
+  })
+  if (flash) {
+    void flash.offsetWidth
+    flash.classList.add('active')
+  }
 
   playChirp()
 
@@ -112,6 +126,10 @@ function triggerExpenseAnimation() {
   setTimeout(() => {
     tree.classList.remove('blowing')
     waves.forEach((wave) => wave.classList.remove('active'))
+    dangerHearts.forEach((heart) => heart.classList.remove('active'))
+    if (flash) {
+      flash.classList.remove('active')
+    }
   }, 700)
 }
 
