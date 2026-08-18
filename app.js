@@ -72,6 +72,8 @@ function getDaysUntilReset() {
 }
 
 function updateCountdown() {
+  if (!countdownEl) return
+  
   const days = getDaysUntilReset()
   if (days <= 0) {
     checkAndResetPeriod()
@@ -638,6 +640,10 @@ historyModal.addEventListener('click', (e) => {
 })
 
 periodSettingsBtn.addEventListener('click', () => {
+  if (!settingsModal) {
+    console.error('Settings modal not found')
+    return
+  }
   loadSettingsModal()
   settingsModal.classList.remove('hidden')
 })
