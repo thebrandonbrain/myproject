@@ -4,6 +4,8 @@ const PERIOD_KEY = 'budgiet_current_period'
 const PERIOD_START_KEY = 'budgiet_period_start'
 const PERIOD_END_KEY = 'budgiet_period_end'
 const HISTORY_KEY = 'budgiet_history'
+const BUDGIE_DESIGN_KEY = 'budgiet_budgie_design'
+const COMPLETED_RESETS_KEY = 'budgiet_completed_resets'
 
 const form = document.getElementById('tx-form')
 const descEl = document.getElementById('description')
@@ -29,10 +31,59 @@ const periodEndInput = document.getElementById('period-end-date')
 const dateSummary = document.getElementById('date-summary')
 const savePeriodSettingsBtn = document.getElementById('save-period-settings')
 const resetToTodayBtn = document.getElementById('reset-to-today')
+const budgieScene = document.querySelector('.budgie-scene')
+const budgieDesignButtons = document.querySelectorAll('.budgie-design')
+const midnightCutscene = document.getElementById('midnight-cutscene')
 
 let transactions = []
 let currentPeriod = localStorage.getItem(PERIOD_KEY) || 'monthly'
 let countdownTimer = null
+
+function getCompletedResetCount() {
+  return Number(localStorage.getItem(COMPLETED_RESETS_KEY)) || 0
+}
+
+function updateBudgieDesignSelector() {
+  if (!budgieScene) return
+  const completedResets = getCompletedResetCount()
+  const selectedDesign = localStorage.getItem(BUDGIE_DESIGN_KEY) || 'default'
+  budgieScene.dataset.design = selectedDesign
+
+  budgieDesignButtons.forEach((button) => {
+    const requiredResets = Number(button.dataset.unlockReset) || 0
+    const unlocked = completedResets >= requiredResets
+    button.disabled = !unlocked
+    button.classList.toggle('is-locked', !unlocked)
+    button.classList.toggle('is-selected', button.dataset.budgieDesign === selectedDesign)
+    button.title = unlocked ? `${button.dataset.budgieDesign} budgie` : `Unlock after ${requiredResets} completed reset${requiredResets === 1 ? '' : 's'}`
+  })
+}
+
+function selectBudgieDesign(design) {
+  localStorage.setItem(BUDGIE_DESIGN_KEY, design)
+  updateBudgieDesignSelector()
+}
+
+function playMidnightCutscene(scene) {
+  if (!midnightCutscene) return
+  const flock = midnightCutscene.querySelector('.cutscene-flock')
+  if (!flock) return
+
+  flock.innerHTML = Array.from(scene.querySelectorAll('.budgie')).map((bird) => bird.outerHTML).join('')
+  midnightCutscene.classList.remove('hidden')
+  void midnightCutscene.offsetWidth
+  midnightCutscene.classList.add('is-playing')
+  setTimeout(() => {
+    midnightCutscene.classList.remove('is-playing')
+    midnightCutscene.classList.add('hidden')
+    flock.innerHTML = ''
+  }, 1450)
+}
+
+function isUnlockEligiblePeriod(endDate) {
+  const startDate = new Date(localStorage.getItem(PERIOD_START_KEY))
+  return Number.isFinite(startDate.getTime()) && endDate - startDate >= 7 * 24 * 60 * 60 * 1000
+}
 
 function getPeriodEndDate(period = currentPeriod) {
   // Check for custom end date first
@@ -125,6 +176,9 @@ function checkAndResetPeriod() {
   if (now >= endDate) {
     // Save current period to history before resetting
     savePeriodToHistory()
+    if (isUnlockEligiblePeriod(endDate)) {
+      localStorage.setItem(COMPLETED_RESETS_KEY, String(getCompletedResetCount() + 1))
+    }
 
     // Reset transactions and period start
     transactions = []
@@ -351,6 +405,7 @@ function init(){
   periodSelect.value = currentPeriod
 
   transactions = loadTransactions()
+  updateBudgieDesignSelector()
   updateUI()
   updateCountdown()
 
@@ -380,27 +435,46 @@ function formatCurrency(num){
 
 let lastLeafState = 5
 
-function playChirp() {
+function playChirp({ roaring = false } = {}) {
   const AudioCtx = window.AudioContext || window.webkitAudioContext
-  if (!AudioCtx) return
+  if (!AudioCtx) return Promise.resolve()
 
   const audioCtx = new AudioCtx()
-  const oscillator = audioCtx.createOscillator()
-  const gainNode = audioCtx.createGain()
+  const volume = roaring ? 0.26 : 0.08
+  const chirp = (startOffset, startFrequency, endFrequency) => {
+    const oscillator = audioCtx.createOscillator()
+    const gainNode = audioCtx.createGain()
+    const startTime = audioCtx.currentTime + startOffset
 
-  oscillator.type = 'triangle'
-  oscillator.frequency.setValueAtTime(1800, audioCtx.currentTime)
-  oscillator.frequency.exponentialRampToValueAtTime(2500, audioCtx.currentTime + 0.08)
+    oscillator.type = roaring ? 'triangle' : 'sine'
+    oscillator.frequency.setValueAtTime(startFrequency, startTime)
+    oscillator.frequency.exponentialRampToValueAtTime(endFrequency, startTime + 0.07)
+    oscillator.frequency.exponentialRampToValueAtTime(endFrequency * 0.9, startTime + 0.12)
 
-  gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime)
-  gainNode.gain.exponentialRampToValueAtTime(0.12, audioCtx.currentTime + 0.01)
-  gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.18)
+    gainNode.gain.setValueAtTime(0.0001, startTime)
+    gainNode.gain.exponentialRampToValueAtTime(volume, startTime + 0.012)
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.14)
 
-  oscillator.connect(gainNode)
-  gainNode.connect(audioCtx.destination)
-  oscillator.start()
-  oscillator.stop(audioCtx.currentTime + 0.2)
-  oscillator.onended = () => audioCtx.close()
+    oscillator.connect(gainNode)
+    gainNode.connect(audioCtx.destination)
+    oscillator.start(startTime)
+    oscillator.stop(startTime + 0.15)
+  }
+
+  if (roaring) {
+    chirp(0, 1500, 3100)
+    chirp(0.1, 1700, 3400)
+    chirp(0.2, 1900, 3650)
+    chirp(0.34, 2200, 3900)
+  } else {
+    chirp(0, 2400, 3300)
+    chirp(0.11, 2800, 3700)
+  }
+
+  const closeAfter = roaring ? 560 : 300
+  return audioCtx.resume().catch(() => {}).finally(() => {
+    setTimeout(() => audioCtx.close(), closeAfter)
+  })
 }
 
 function triggerExpenseAnimation() {
@@ -410,9 +484,30 @@ function triggerExpenseAnimation() {
   const flash = document.getElementById('expense-flash')
   const dangerHearts = document.querySelectorAll('.danger-heart')
   if (!scene || !tree) return
+  const design = scene.dataset.design || 'default'
+  const impactDuration = design === 'midnight' ? 3200 : 760
+  const releaseLeaves = (gustCount, gustDuration) => {
+    const leaves = Array.from(document.querySelectorAll('.leaf'))
+    leaves.forEach((leaf, index) => {
+      leaf.classList.remove('blown-away', 'falling')
+      void leaf.offsetWidth
+      leaf.classList.add('blown-away')
+      leaf.style.setProperty('--delay', `${index * 30}ms`)
+    })
 
-  scene.classList.remove('expense-impact')
-  tree.classList.remove('blowing')
+    for (let index = 0; index < gustCount; index += 1) {
+      const gust = document.createElement('span')
+      gust.className = 'cash-gust'
+      gust.style.setProperty('--x', `${30 + (index % 6) * 28}px`)
+      gust.style.setProperty('--y', `${55 + Math.floor(index / 6) * 26}px`)
+      gust.style.setProperty('--delay', `${index * 42}ms`)
+      tree.appendChild(gust)
+      setTimeout(() => gust.remove(), gustDuration)
+    }
+  }
+
+  scene.classList.remove('expense-impact', 'midnight-cutscene')
+  tree.classList.remove('blowing', 'impact-sunset', 'impact-rose', 'impact-midnight', 'tree-under-attack')
   waves.forEach((wave) => {
     wave.classList.remove('active')
   })
@@ -423,6 +518,12 @@ function triggerExpenseAnimation() {
 
   void scene.offsetWidth
   scene.classList.add('expense-impact')
+  tree.classList.add(`impact-${design}`)
+  if (design === 'midnight') {
+    scene.classList.add('midnight-cutscene')
+    playMidnightCutscene(scene)
+    setTimeout(() => playChirp({ roaring: true }), 220)
+  }
   tree.classList.add('blowing')
   waves.forEach((wave) => {
     void wave.offsetWidth
@@ -437,24 +538,35 @@ function triggerExpenseAnimation() {
     flash.classList.add('active')
   }
 
-  playChirp()
+  playChirp({ roaring: design === 'midnight' })
 
-  const leaves = Array.from(document.querySelectorAll('.leaf'))
-  leaves.forEach((leaf, index) => {
-    leaf.classList.remove('blown-away', 'falling')
-    void leaf.offsetWidth
-    leaf.classList.add('blown-away')
-    leaf.style.setProperty('--delay', `${index * 30}ms`)
-  })
+  if (design === 'midnight') {
+    setTimeout(() => {
+      scene.classList.remove('midnight-cutscene')
+      tree.classList.remove('blowing', 'tree-under-attack', 'impact-midnight')
+      waves.forEach((wave) => wave.classList.remove('active'))
+      void tree.offsetWidth
+      tree.classList.add('blowing', 'tree-under-attack', 'impact-midnight')
+      waves.forEach((wave) => {
+        void wave.offsetWidth
+        wave.classList.add('active')
+      })
+      releaseLeaves(18, 1700)
+    }, 1400)
+  } else {
+    const gustCount = design === 'rose' ? 10 : design === 'sunset' ? 5 : 0
+    releaseLeaves(gustCount, impactDuration)
+  }
 
   setTimeout(() => {
-    tree.classList.remove('blowing')
+    tree.classList.remove('blowing', 'impact-sunset', 'impact-rose', 'impact-midnight', 'tree-under-attack')
+    scene.classList.remove('midnight-cutscene')
     waves.forEach((wave) => wave.classList.remove('active'))
     dangerHearts.forEach((heart) => heart.classList.remove('active'))
     if (flash) {
       flash.classList.remove('active')
     }
-  }, 700)
+  }, impactDuration)
 }
 
 function updateTreeLeaves(score) {
@@ -615,6 +727,10 @@ form.addEventListener('submit', e => {
 })
 
 clearBtn.addEventListener('click', clearAll)
+
+budgieDesignButtons.forEach((button) => {
+  button.addEventListener('click', () => selectBudgieDesign(button.dataset.budgieDesign))
+})
 
 periodSelect.addEventListener('change', (e) => {
   currentPeriod = e.target.value
