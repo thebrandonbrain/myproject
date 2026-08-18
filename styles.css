@@ -70,16 +70,18 @@ body {
 
 .header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
   gap: 18px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
 }
 
 .title-wrap {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .budgie-header {
@@ -158,6 +160,7 @@ body {
 .controls {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -1444,7 +1447,7 @@ body {
 @media (max-width: 640px) {
   body { padding: 18px 12px; }
   .app { padding: 18px 14px; }
-  .header { align-items: flex-start; }
+  .header { align-items: center; }
   .budgie-header { align-items: flex-start; }
   .entry .form { flex-direction: column; }
   .entry input, .entry select, .add-btn { width: 100%; }
