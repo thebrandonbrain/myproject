@@ -501,6 +501,15 @@ body {
   overflow: hidden;
 }
 
+.health-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #dc2626;
+  border-radius: inherit;
+  transition: width 0.25s ease, background-color 0.25s ease;
+}
+
 /* Period Control Styles */
 .period-control {
   display: flex;
@@ -936,17 +945,6 @@ body {
 .btn-secondary:hover {
   background: rgba(107, 114, 128, 0.2);
   color: #123f32;
-}
-  overflow: hidden;
-}
-
-.health-fill {
-  display: block;
-  height: 100%;
-  width: 0;
-  background: linear-gradient(90deg, #dc2626 0%, #f59e0b 50%, #22c55e 100%);
-  border-radius: inherit;
-  transition: width 0.25s ease;
 }
 
 .tree-status {

@@ -522,7 +522,9 @@ function updateSummary(){
   }
 
   treeScore.textContent = `${score}%`
-  healthFill.style.width = `${score}%`
+  const displayScore = transactions.length > 0 ? Math.max(score, 3) : 0
+  healthFill.style.width = `${displayScore}%`
+  healthFill.style.backgroundColor = `hsl(${Math.round(score * 1.2)} 72% 42%)`
   treeStatus.textContent = statusText
   updateTreeLeaves(score)
 }
