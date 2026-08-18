@@ -337,6 +337,7 @@ function resetToToday() {
   updateUI()
   updateCountdown()
   alert('Period has been reset to today!')
+}
 
 function init(){
   // Initialize period if not set
