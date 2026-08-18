@@ -91,6 +91,10 @@ body {
   column-gap: 6px;
 }
 
+.budgie-header > div {
+  text-align: center;
+}
+
 .budgie-icon {
   width: 48px;
   height: 42px;
