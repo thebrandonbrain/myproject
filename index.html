@@ -43,6 +43,19 @@
         </div>
       </div>
       <div class="controls">
+        <div class="period-control">
+          <label for="period-select">Period:</label>
+          <select id="period-select">
+            <option value="weekly">Weekly</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="annual">Annual</option>
+          </select>
+          <div id="countdown" class="countdown">
+            <span id="countdown-text"></span>
+          </div>
+        </div>
+        <button id="history-btn" title="View past periods">📊 History</button>
         <button id="clear-btn" title="Clear all transactions">Clear All</button>
       </div>
     </header>
@@ -194,6 +207,19 @@
     <footer class="footer">
       <small>Made with 💚 — Budgiet • happy little budget tree</small>
     </footer>
+  </div>
+
+  <!-- History Modal -->
+  <div id="history-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Period History</h2>
+        <button id="close-history" class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="history-list" class="history-list"></div>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>

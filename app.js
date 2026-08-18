@@ -1,5 +1,8 @@
 /* Budgiet — Local-first budget tracker with device storage */
 const STORAGE_KEY = 'pocketpilot_tx_v1'
+const PERIOD_KEY = 'budgiet_current_period'
+const PERIOD_START_KEY = 'budgiet_period_start'
+const HISTORY_KEY = 'budgiet_history'
 
 const form = document.getElementById('tx-form')
 const descEl = document.getElementById('description')
@@ -11,14 +14,192 @@ const balanceEl = document.getElementById('balance')
 const incomeEl = document.getElementById('income')
 const expensesEl = document.getElementById('expenses')
 const clearBtn = document.getElementById('clear-btn')
-
-
+const periodSelect = document.getElementById('period-select')
+const countdownEl = document.getElementById('countdown-text')
+const historyBtn = document.getElementById('history-btn')
+const historyModal = document.getElementById('history-modal')
+const closeHistoryBtn = document.getElementById('close-history')
+const historyList = document.getElementById('history-list')
 
 let transactions = []
+let currentPeriod = localStorage.getItem(PERIOD_KEY) || 'monthly'
+let countdownTimer = null
+
+function getPeriodEndDate(period = currentPeriod) {
+  const now = new Date()
+  const storedStart = localStorage.getItem(PERIOD_START_KEY)
+  let periodStart = storedStart ? new Date(storedStart) : now
+
+  const periodEnd = new Date(periodStart)
+  switch (period) {
+    case 'weekly':
+      periodEnd.setDate(periodEnd.getDate() + 7)
+      break
+    case 'monthly':
+      periodEnd.setMonth(periodEnd.getMonth() + 1)
+      break
+    case 'quarterly':
+      periodEnd.setMonth(periodEnd.getMonth() + 3)
+      break
+    case 'annual':
+      periodEnd.setFullYear(periodEnd.getFullYear() + 1)
+      break
+  }
+  return periodEnd
+}
+
+function getDaysUntilReset() {
+  const now = new Date()
+  const endDate = getPeriodEndDate()
+  const diff = endDate - now
+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}
+
+function updateCountdown() {
+  const days = getDaysUntilReset()
+  if (days <= 0) {
+    checkAndResetPeriod()
+    countdownEl.textContent = 'Resetting now...'
+    return
+  }
+  
+  const periodName = currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1)
+  countdownEl.textContent = `${days} day${days !== 1 ? 's' : ''} until ${periodName} reset`
+}
+
+function savePeriodToHistory() {
+  try {
+    const incomes = transactions.filter(t => t.type === 'income').reduce((s,t)=>s + Number(t.amount),0)
+    const expenses = transactions.filter(t => t.type === 'expense').reduce((s,t)=>s + Number(t.amount),0)
+    const balance = incomes - expenses
+
+    const periodData = {
+      period: currentPeriod,
+      startDate: localStorage.getItem(PERIOD_START_KEY),
+      endDate: new Date().toISOString(),
+      transactions: [...transactions],
+      income: incomes,
+      expenses: expenses,
+      balance: balance
+    }
+
+    const history = loadHistory()
+    history.unshift(periodData)
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history))
+  } catch (e) {
+    console.error('Failed to save period to history', e)
+  }
+}
+
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch (e) {
+    console.error('Failed to load history', e)
+    return []
+  }
+}
+
+function checkAndResetPeriod() {
+  const now = new Date()
+  const endDate = getPeriodEndDate()
+
+  if (now >= endDate) {
+    // Save current period to history before resetting
+    savePeriodToHistory()
+
+    // Reset transactions and period start
+    transactions = []
+    saveTransactions()
+    localStorage.setItem(PERIOD_START_KEY, new Date().toISOString())
+
+    updateUI()
+    updateCountdown()
+  }
+}
+
+function displayHistory() {
+  const history = loadHistory()
+  historyList.innerHTML = ''
+
+  if (history.length === 0) {
+    historyList.innerHTML = '<p class="no-history">No past periods yet.</p>'
+    return
+  }
+
+  history.forEach((period, index) => {
+    const historyCard = document.createElement('div')
+    historyCard.className = 'history-card'
+
+    const startDate = new Date(period.startDate).toLocaleDateString()
+    const endDate = new Date(period.endDate).toLocaleDateString()
+    const periodLabel = period.period.charAt(0).toUpperCase() + period.period.slice(1)
+
+    historyCard.innerHTML = `
+      <div class="history-header">
+        <h3>${periodLabel} Period</h3>
+        <span class="history-dates">${startDate} to ${endDate}</span>
+      </div>
+      <div class="history-stats">
+        <div class="history-stat">
+          <span class="label">Income</span>
+          <span class="amount income">${formatCurrency(period.income)}</span>
+        </div>
+        <div class="history-stat">
+          <span class="label">Expenses</span>
+          <span class="amount expense">${formatCurrency(period.expenses)}</span>
+        </div>
+        <div class="history-stat">
+          <span class="label">Balance</span>
+          <span class="amount balance">${formatCurrency(period.balance)}</span>
+        </div>
+      </div>
+      <div class="history-transactions">
+        <details>
+          <summary>View Transactions (${period.transactions.length})</summary>
+          <ul class="tx-history-list">
+            ${period.transactions.map(tx => {
+              const date = new Date(tx.id).toLocaleString()
+              const signed = tx.type === 'income' ? Number(tx.amount) : -Math.abs(Number(tx.amount))
+              return `
+                <li class="tx-history-item">
+                  <div class="tx-history-info">
+                    <div class="tx-history-desc">${tx.description}</div>
+                    <div class="tx-history-meta">${tx.type} • ${date}</div>
+                  </div>
+                  <div class="tx-history-amount ${tx.type}">${formatCurrency(signed)}</div>
+                </li>
+              `
+            }).join('')}
+          </ul>
+        </details>
+      </div>
+    `
+
+    historyList.appendChild(historyCard)
+  })
+}
 
 function init(){
+  // Initialize period if not set
+  if (!localStorage.getItem(PERIOD_START_KEY)) {
+    localStorage.setItem(PERIOD_START_KEY, new Date().toISOString())
+  }
+
+  // Check for period reset
+  checkAndResetPeriod()
+
+  // Set current period from select
+  periodSelect.value = currentPeriod
+
   transactions = loadTransactions()
   updateUI()
+  updateCountdown()
+
+  // Start countdown timer
+  if (countdownTimer) clearInterval(countdownTimer)
+  countdownTimer = setInterval(updateCountdown, 60000) // Update every minute
 }
 
 function loadTransactions(){
@@ -275,6 +456,31 @@ form.addEventListener('submit', e => {
 })
 
 clearBtn.addEventListener('click', clearAll)
+
+periodSelect.addEventListener('change', (e) => {
+  currentPeriod = e.target.value
+  localStorage.setItem(PERIOD_KEY, currentPeriod)
+  localStorage.setItem(PERIOD_START_KEY, new Date().toISOString())
+  transactions = []
+  saveTransactions()
+  updateUI()
+  updateCountdown()
+})
+
+historyBtn.addEventListener('click', () => {
+  displayHistory()
+  historyModal.classList.remove('hidden')
+})
+
+closeHistoryBtn.addEventListener('click', () => {
+  historyModal.classList.add('hidden')
+})
+
+historyModal.addEventListener('click', (e) => {
+  if (e.target === historyModal) {
+    historyModal.classList.add('hidden')
+  }
+})
 
 // init
 init()
