@@ -54,6 +54,7 @@
           <div id="countdown" class="countdown">
             <span id="countdown-text"></span>
           </div>
+          <button id="period-settings-btn" class="settings-btn" title="Customize period dates">⚙️</button>
         </div>
         <button id="history-btn" title="View past periods">📊 History</button>
         <button id="clear-btn" title="Clear all transactions">Clear All</button>
@@ -218,6 +219,49 @@
       </div>
       <div class="modal-body">
         <div id="history-list" class="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Period Settings Modal -->
+  <div id="period-settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Configure Period</h2>
+        <button id="close-settings" class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-section">
+          <h3>Custom Period Duration</h3>
+          <p class="settings-desc">Set your own start and end dates for tracking</p>
+          
+          <div class="date-inputs">
+            <div class="date-group">
+              <label for="period-start-date">Start Date</label>
+              <input type="date" id="period-start-date" />
+            </div>
+            <div class="date-group">
+              <label for="period-end-date">End Date</label>
+              <input type="date" id="period-end-date" />
+            </div>
+          </div>
+
+          <div class="date-summary" id="date-summary"></div>
+          
+          <div class="quick-presets">
+            <h4>Quick Presets</h4>
+            <button id="preset-today" class="preset-btn">Today</button>
+            <button id="preset-week" class="preset-btn">This Week</button>
+            <button id="preset-month" class="preset-btn">This Month</button>
+            <button id="preset-quarter" class="preset-btn">This Quarter</button>
+            <button id="preset-year" class="preset-btn">This Year</button>
+          </div>
+        </div>
+        
+        <div class="settings-actions">
+          <button id="save-period-settings" class="btn-primary">Save & Refresh</button>
+          <button id="reset-to-today" class="btn-secondary">Reset to Today</button>
+        </div>
       </div>
     </div>
   </div>

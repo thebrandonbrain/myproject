@@ -2,6 +2,7 @@
 const STORAGE_KEY = 'pocketpilot_tx_v1'
 const PERIOD_KEY = 'budgiet_current_period'
 const PERIOD_START_KEY = 'budgiet_period_start'
+const PERIOD_END_KEY = 'budgiet_period_end'
 const HISTORY_KEY = 'budgiet_history'
 
 const form = document.getElementById('tx-form')
@@ -20,12 +21,27 @@ const historyBtn = document.getElementById('history-btn')
 const historyModal = document.getElementById('history-modal')
 const closeHistoryBtn = document.getElementById('close-history')
 const historyList = document.getElementById('history-list')
+const periodSettingsBtn = document.getElementById('period-settings-btn')
+const settingsModal = document.getElementById('period-settings-modal')
+const closeSettingsBtn = document.getElementById('close-settings')
+const periodStartInput = document.getElementById('period-start-date')
+const periodEndInput = document.getElementById('period-end-date')
+const dateSummary = document.getElementById('date-summary')
+const savePeriodSettingsBtn = document.getElementById('save-period-settings')
+const resetToTodayBtn = document.getElementById('reset-to-today')
 
 let transactions = []
 let currentPeriod = localStorage.getItem(PERIOD_KEY) || 'monthly'
 let countdownTimer = null
 
 function getPeriodEndDate(period = currentPeriod) {
+  // Check for custom end date first
+  const customEndDate = localStorage.getItem(PERIOD_END_KEY)
+  if (customEndDate) {
+    return new Date(customEndDate)
+  }
+
+  // If no custom date, calculate based on period type
   const now = new Date()
   const storedStart = localStorage.getItem(PERIOD_START_KEY)
   let periodStart = storedStart ? new Date(storedStart) : now
@@ -180,6 +196,145 @@ function displayHistory() {
     historyList.appendChild(historyCard)
   })
 }
+
+function formatDateForInput(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function updateDateSummary() {
+  const startDate = periodStartInput.value ? new Date(periodStartInput.value) : null
+  const endDate = periodEndInput.value ? new Date(periodEndInput.value) : null
+
+  if (startDate && endDate) {
+    const diffTime = endDate - startDate
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    const startStr = startDate.toLocaleDateString()
+    const endStr = endDate.toLocaleDateString()
+    dateSummary.innerHTML = `<div class="summary-text"><strong>${startStr}</strong> to <strong>${endStr}</strong><br><span class="duration">${diffDays} days</span></div>`
+  } else {
+    dateSummary.innerHTML = ''
+  }
+}
+
+function loadSettingsModal() {
+  const customStart = localStorage.getItem(PERIOD_START_KEY)
+  const customEnd = localStorage.getItem(PERIOD_END_KEY)
+
+  if (customStart) {
+    periodStartInput.value = formatDateForInput(new Date(customStart))
+  } else {
+    const today = new Date()
+    periodStartInput.value = formatDateForInput(today)
+  }
+
+  if (customEnd) {
+    periodEndInput.value = formatDateForInput(new Date(customEnd))
+  } else {
+    const endDate = getPeriodEndDate()
+    periodEndInput.value = formatDateForInput(endDate)
+  }
+
+  updateDateSummary()
+}
+
+function setPreset(startDate, endDate) {
+  periodStartInput.value = formatDateForInput(startDate)
+  periodEndInput.value = formatDateForInput(endDate)
+  updateDateSummary()
+}
+
+function getWeekStart(date = new Date()) {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = d.getDate() - day
+  return new Date(d.setDate(diff))
+}
+
+function getMonthStart(date = new Date()) {
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
+
+function getMonthEnd(date = new Date()) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0)
+}
+
+function getQuarterStart(date = new Date()) {
+  const quarter = Math.floor(date.getMonth() / 3)
+  return new Date(date.getFullYear(), quarter * 3, 1)
+}
+
+function getQuarterEnd(date = new Date()) {
+  const quarter = Math.floor(date.getMonth() / 3)
+  return new Date(date.getFullYear(), (quarter + 1) * 3, 0)
+}
+
+function getYearStart(date = new Date()) {
+  return new Date(date.getFullYear(), 0, 1)
+}
+
+function getYearEnd(date = new Date()) {
+  return new Date(date.getFullYear(), 11, 31)
+}
+
+function savePeriodSettings() {
+  const startDate = periodStartInput.value
+  const endDate = periodEndInput.value
+
+  if (!startDate || !endDate) {
+    alert('Please select both start and end dates')
+    return
+  }
+
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+
+  if (start >= end) {
+    alert('Start date must be before end date')
+    return
+  }
+
+  // Save the custom dates
+  localStorage.setItem(PERIOD_START_KEY, start.toISOString())
+  localStorage.setItem(PERIOD_END_KEY, end.toISOString())
+
+  // Close modal
+  settingsModal.classList.add('hidden')
+
+  // Refresh UI
+  updateCountdown()
+  alert('Period settings saved! Countdown has been refreshed.')
+}
+
+function resetToToday() {
+  if (!confirm('Reset period to start today? This will save current period to history.')) {
+    return
+  }
+
+  // Save current period to history
+  savePeriodToHistory()
+
+  // Reset transactions
+  transactions = []
+  saveTransactions()
+
+  // Set new start date to today
+  const today = new Date()
+  localStorage.setItem(PERIOD_START_KEY, today.toISOString())
+
+  // Calculate new end date based on current period
+  const newEnd = getPeriodEndDate()
+  localStorage.setItem(PERIOD_END_KEY, newEnd.toISOString())
+
+  // Reload modal
+  loadSettingsModal()
+
+  // Update UI
+  updateUI()
+  updateCountdown()
+  alert('Period has been reset to today!')
 
 function init(){
   // Initialize period if not set
@@ -480,6 +635,52 @@ historyModal.addEventListener('click', (e) => {
   if (e.target === historyModal) {
     historyModal.classList.add('hidden')
   }
+})
+
+periodSettingsBtn.addEventListener('click', () => {
+  loadSettingsModal()
+  settingsModal.classList.remove('hidden')
+})
+
+closeSettingsBtn.addEventListener('click', () => {
+  settingsModal.classList.add('hidden')
+})
+
+settingsModal.addEventListener('click', (e) => {
+  if (e.target === settingsModal) {
+    settingsModal.classList.add('hidden')
+  }
+})
+
+periodStartInput.addEventListener('change', updateDateSummary)
+periodEndInput.addEventListener('change', updateDateSummary)
+
+savePeriodSettingsBtn.addEventListener('click', savePeriodSettings)
+resetToTodayBtn.addEventListener('click', resetToToday)
+
+// Preset buttons
+document.getElementById('preset-today').addEventListener('click', () => {
+  const today = new Date()
+  setPreset(today, today)
+})
+
+document.getElementById('preset-week').addEventListener('click', () => {
+  const weekStart = getWeekStart()
+  const weekEnd = new Date(weekStart)
+  weekEnd.setDate(weekEnd.getDate() + 6)
+  setPreset(weekStart, weekEnd)
+})
+
+document.getElementById('preset-month').addEventListener('click', () => {
+  setPreset(getMonthStart(), getMonthEnd())
+})
+
+document.getElementById('preset-quarter').addEventListener('click', () => {
+  setPreset(getQuarterStart(), getQuarterEnd())
+})
+
+document.getElementById('preset-year').addEventListener('click', () => {
+  setPreset(getYearStart(), getYearEnd())
 })
 
 // init
