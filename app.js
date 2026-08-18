@@ -615,10 +615,12 @@ function updateSummary(){
   const healthyBase = incomes > 0 ? (remaining / incomes) * 100 : 0
   const score = Math.max(0, Math.min(100, Math.round(healthyBase)))
 
-  let statusText = 'Your tree is waiting for a healthy ratio.'
+  let statusText = 'Add an income or expense to begin.'
   tree.classList.remove('tree-thriving', 'tree-healthy', 'tree-stressed', 'tree-empty')
 
-  if (score >= 70) {
+  if (transactions.length === 0) {
+    tree.classList.add('tree-empty')
+  } else if (score >= 70) {
     tree.classList.add('tree-thriving')
     statusText = 'Your budget tree is thriving — healthy and happy!'
   } else if (score >= 35) {
