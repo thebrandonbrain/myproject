@@ -498,6 +498,7 @@ body {
   background: rgba(21, 56, 48, 0.12);
   border: 1px solid rgba(21,56,48,0.14);
   border-radius: 999px;
+  overflow: hidden;
 }
 
 /* Period Control Styles */
@@ -943,7 +944,7 @@ body {
   display: block;
   height: 100%;
   width: 0;
-  background: linear-gradient(90deg, #f59e0b 0%, #22c55e 100%);
+  background: linear-gradient(90deg, #dc2626 0%, #f59e0b 50%, #22c55e 100%);
   border-radius: inherit;
   transition: width 0.25s ease;
 }
