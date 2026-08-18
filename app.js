@@ -81,8 +81,7 @@ function updateCountdown() {
     return
   }
   
-  const periodName = currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1)
-  countdownEl.textContent = `${days} day${days !== 1 ? 's' : ''} until ${periodName} reset`
+  countdownEl.textContent = `${days} day${days !== 1 ? 's' : ''} until reset`
 }
 
 function savePeriodToHistory() {
