@@ -8,6 +8,7 @@
 </head>
 <body>
   <div id="expense-flash" class="expense-flash" aria-hidden="true"></div>
+  <div id="income-flash" class="income-flash" aria-hidden="true"></div>
   <div id="midnight-cutscene" class="midnight-cutscene hidden" aria-hidden="true">
     <div class="cutscene-sky"></div>
     <div class="cutscene-tree" aria-hidden="true"></div>
@@ -32,18 +33,21 @@
         </div>
       </div>
       <div class="controls">
-        <div class="period-control">
-          <label for="period-select">Period:</label>
-          <select id="period-select">
-            <option value="weekly">Weekly</option>
-            <option value="monthly" selected>Monthly</option>
-            <option value="quarterly">Quarterly</option>
-            <option value="annual">Annual</option>
-          </select>
-          <div id="countdown" class="countdown">
-            <span id="countdown-text"></span>
+        <div class="period-control-wrap">
+          <div class="period-control">
+            <label for="period-select">Tracking period before reset:</label>
+            <select id="period-select">
+              <option value="weekly">Weekly</option>
+              <option value="monthly" selected>Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="annual">Annual</option>
+            </select>
+            <div id="countdown" class="countdown">
+              <span id="countdown-text"></span>
+            </div>
+            <button id="period-settings-btn" class="settings-btn" title="Customize period dates">⚙️</button>
           </div>
-          <button id="period-settings-btn" class="settings-btn" title="Customize period dates">⚙️</button>
+          <p class="period-hint">Choose how often your transactions reset. Changing this only updates the countdown — your current transactions stay put until the period ends.</p>
         </div>
         <button id="history-btn" title="View past periods">📊 History</button>
         <button id="clear-btn" title="Clear all transactions">Clear All</button>
@@ -51,6 +55,22 @@
     </header>
 
     <main class="main">
+      <div class="summary-controls">
+        <label for="display-currency-select">Display currency:</label>
+        <select id="display-currency-select">
+          <option value="USD" selected>USD $</option>
+          <option value="EUR">EUR €</option>
+          <option value="GBP">GBP £</option>
+          <option value="JPY">JPY ¥</option>
+          <option value="AUD">AUD A$</option>
+          <option value="CAD">CAD C$</option>
+          <option value="INR">INR ₹</option>
+          <option value="CNY">CNY ¥</option>
+          <option value="SGD">SGD S$</option>
+          <option value="CHF">CHF Fr</option>
+        </select>
+        <span id="rate-status" class="rate-status"></span>
+      </div>
       <section class="summary">
         <div class="card balance-card">
           <div class="label">Balance</div>
@@ -69,6 +89,32 @@
       <section class="budget-health" aria-label="Budget health tree">
         <div class="tree-panel">
           <div class="tree-stage">
+            <div class="budgie-designs" role="group" aria-label="Budgie designs">
+              <button class="budgie-design is-selected" type="button" data-budgie-design="default" title="Ocean budgie" aria-label="Ocean budgie">
+                <span class="budgie-design-icon ocean-budgie" aria-hidden="true"></span>
+              </button>
+              <button class="budgie-design" type="button" data-budgie-design="sunset" data-unlock-reset="2" title="Unlock after 2 days of use" aria-label="Sunset budgie, unlock after 2 days of use" disabled>
+                <span class="budgie-design-icon sunset-budgie" aria-hidden="true"></span>
+                <span class="design-lock" aria-hidden="true">&#128274;</span>
+              </button>
+              <button class="budgie-design" type="button" data-budgie-design="rose" data-unlock-reset="3" title="Unlock after 3 days of use" aria-label="Rose budgie, unlock after 3 days of use" disabled>
+                <span class="budgie-design-icon rose-budgie" aria-hidden="true"></span>
+                <span class="design-lock" aria-hidden="true">&#128274;</span>
+              </button>
+              <button class="budgie-design" type="button" data-budgie-design="midnight" data-unlock-reset="4" title="Unlock after 4 days of use" aria-label="Midnight budgie, unlock after 4 days of use" disabled>
+                <span class="budgie-design-icon midnight-budgie" aria-hidden="true"></span>
+                <span class="design-lock" aria-hidden="true">&#128274;</span>
+              </button>
+            </div>
+            <p class="skins-hint">Unlock new skins as you progress day by day. Use Budgiet every day to unlock new skins.</p>
+            <div class="danger-icons" aria-hidden="true">
+              <div class="danger-heart danger-heart-left">💔</div>
+              <div class="danger-heart danger-heart-right">💔</div>
+            </div>
+            <div class="joy-icons" aria-hidden="true">
+              <div class="joy-spark joy-spark-left">✨</div>
+              <div class="joy-spark joy-spark-right">✨</div>
+            </div>
             <div class="budgie-scene" aria-hidden="true">
               <div class="sound-wave sound-wave-1"></div>
               <div class="sound-wave sound-wave-2"></div>
@@ -100,27 +146,6 @@
                 <circle cx="119" cy="43" r="5.5" fill="#1d3036"/><circle cx="121" cy="41" r="1.8" fill="#fff"/><path d="M131 50l19 6-18 7Z" fill="#ef9d3f"/><path d="M107 55c5 5 12 5 17 0" fill="none" stroke="#62a88c" stroke-width="2.5" stroke-linecap="round"/>
                 <path d="M82 103v8m13-8v8" stroke="#d08b56" stroke-width="3" stroke-linecap="round"/>
               </svg>
-            </div>
-            <div class="budgie-designs" role="group" aria-label="Budgie designs">
-              <button class="budgie-design is-selected" type="button" data-budgie-design="default" title="Ocean budgie" aria-label="Ocean budgie">
-                <span class="budgie-design-icon ocean-budgie" aria-hidden="true"></span>
-              </button>
-              <button class="budgie-design" type="button" data-budgie-design="sunset" data-unlock-reset="1" title="Unlock after 1 completed reset" aria-label="Sunset budgie, unlock after 1 completed reset" disabled>
-                <span class="budgie-design-icon sunset-budgie" aria-hidden="true"></span>
-                <span class="design-lock" aria-hidden="true">&#128274;</span>
-              </button>
-              <button class="budgie-design" type="button" data-budgie-design="rose" data-unlock-reset="2" title="Unlock after 2 completed resets" aria-label="Rose budgie, unlock after 2 completed resets" disabled>
-                <span class="budgie-design-icon rose-budgie" aria-hidden="true"></span>
-                <span class="design-lock" aria-hidden="true">&#128274;</span>
-              </button>
-              <button class="budgie-design" type="button" data-budgie-design="midnight" data-unlock-reset="3" title="Unlock after 3 completed resets" aria-label="Midnight budgie, unlock after 3 completed resets" disabled>
-                <span class="budgie-design-icon midnight-budgie" aria-hidden="true"></span>
-                <span class="design-lock" aria-hidden="true">&#128274;</span>
-              </button>
-            </div>
-            <div class="danger-icons" aria-hidden="true">
-              <div class="danger-heart danger-heart-left">💔</div>
-              <div class="danger-heart danger-heart-right">💔</div>
             </div>
             <div id="tree" class="tree tree-empty" aria-live="polite">
               <span class="leaf leaf-1"></span>
@@ -166,6 +191,18 @@
         <form id="tx-form" class="form">
           <input type="text" id="description" placeholder="Description (e.g., Salary, Coffee)" required>
           <input type="number" id="amount" placeholder="Amount" step="0.01" required>
+          <select id="tx-currency" title="Currency (optional)">
+            <option value="USD" selected>USD $</option>
+            <option value="EUR">EUR €</option>
+            <option value="GBP">GBP £</option>
+            <option value="JPY">JPY ¥</option>
+            <option value="AUD">AUD A$</option>
+            <option value="CAD">CAD C$</option>
+            <option value="INR">INR ₹</option>
+            <option value="CNY">CNY ¥</option>
+            <option value="SGD">SGD S$</option>
+            <option value="CHF">CHF Fr</option>
+          </select>
           <select id="type">
             <option value="income">Income</option>
             <option value="expense">Expense</option>
@@ -241,6 +278,28 @@
           <button id="save-period-settings" class="btn-primary">Save & Refresh</button>
           <button id="reset-to-today" class="btn-secondary">Reset to Today</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- First-time User Onboarding -->
+  <div id="onboarding-overlay" class="onboarding-overlay hidden">
+    <div id="onboarding-highlight" class="onboarding-highlight"></div>
+    <div id="onboarding-tooltip" class="onboarding-tooltip" role="dialog" aria-live="polite">
+      <div class="onboarding-header">
+        <div class="onboarding-avatar">
+          <span class="onboarding-wave onboarding-wave-1" aria-hidden="true"></span>
+          <span class="onboarding-wave onboarding-wave-2" aria-hidden="true"></span>
+          <span class="onboarding-wave onboarding-wave-3" aria-hidden="true"></span>
+          <img src="budgie-logo.png" alt="" class="onboarding-budgie-img">
+        </div>
+        <div id="onboarding-step-count" class="onboarding-step-count"></div>
+      </div>
+      <h3 id="onboarding-title"></h3>
+      <p id="onboarding-text"></p>
+      <div class="onboarding-actions">
+        <button id="onboarding-skip" class="onboarding-skip" type="button">Skip</button>
+        <button id="onboarding-next" class="onboarding-next" type="button">Next</button>
       </div>
     </div>
   </div>

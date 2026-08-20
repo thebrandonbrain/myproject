@@ -5,7 +5,18 @@ const PERIOD_START_KEY = 'budgiet_period_start'
 const PERIOD_END_KEY = 'budgiet_period_end'
 const HISTORY_KEY = 'budgiet_history'
 const BUDGIE_DESIGN_KEY = 'budgiet_budgie_design'
-const COMPLETED_RESETS_KEY = 'budgiet_completed_resets'
+const DAYS_USED_KEY = 'budgiet_days_used'
+const LAST_USED_DATE_KEY = 'budgiet_last_used_date'
+const ONBOARDING_KEY = 'budgiet_onboarding_complete'
+const DISPLAY_CURRENCY_KEY = 'budgiet_display_currency'
+const RATE_CACHE_KEY = 'budgiet_rate_cache'
+const RATE_CACHE_TTL_MS = 30 * 60 * 1000
+
+// Approximate fallback used only when the live rate API is unreachable
+const STATIC_FALLBACK_RATES = {
+  USD: 1, EUR: 0.92, GBP: 0.79, JPY: 151, AUD: 1.52, CAD: 1.36,
+  INR: 83.3, CNY: 7.24, SGD: 1.34, CHF: 0.88
+}
 
 const form = document.getElementById('tx-form')
 const descEl = document.getElementById('description')
@@ -34,34 +45,161 @@ const resetToTodayBtn = document.getElementById('reset-to-today')
 const budgieScene = document.querySelector('.budgie-scene')
 const budgieDesignButtons = document.querySelectorAll('.budgie-design')
 const midnightCutscene = document.getElementById('midnight-cutscene')
+const onboardingOverlay = document.getElementById('onboarding-overlay')
+const onboardingHighlight = document.getElementById('onboarding-highlight')
+const onboardingTooltip = document.getElementById('onboarding-tooltip')
+const onboardingStepCountEl = document.getElementById('onboarding-step-count')
+const onboardingTitleEl = document.getElementById('onboarding-title')
+const onboardingTextEl = document.getElementById('onboarding-text')
+const onboardingNextBtn = document.getElementById('onboarding-next')
+const onboardingSkipBtn = document.getElementById('onboarding-skip')
+const txCurrencySelect = document.getElementById('tx-currency')
+const displayCurrencySelect = document.getElementById('display-currency-select')
+const rateStatusEl = document.getElementById('rate-status')
+
+const onboardingSteps = [
+  {
+    title: 'Welcome to Budgiet! 🐦',
+    text: "This app will store your daily income and expenses so you don't have to actively keep track of them yourself."
+  },
+  {
+    selector: '#description',
+    title: 'Add a description',
+    text: 'Here is where you key in the description of your transaction, like "Salary" or "Coffee".'
+  },
+  {
+    selector: '#amount',
+    title: 'Enter the amount',
+    text: 'Here is where you key in the amount of money you saved or spent.'
+  },
+  {
+    selector: '#type',
+    title: 'Income or expense?',
+    text: 'Choose whether this transaction is Income coming in or an Expense going out.'
+  },
+  {
+    selector: '.add-btn',
+    title: 'Save your transaction',
+    text: "Tap Add to save it — it's stored right on your device automatically."
+  },
+  {
+    selector: '.period-control',
+    title: 'Set your tracking period',
+    text: 'Pick how often your budget resets. Changing this only updates the countdown — your transactions stay safe.'
+  },
+  {
+    selector: '.budgie-designs',
+    title: 'Unlock new bird skins',
+    text: 'Use Budgiet every day to unlock new skins for your budget tree bird!'
+  }
+]
+
+let onboardingIndex = 0
 
 let transactions = []
 let currentPeriod = localStorage.getItem(PERIOD_KEY) || 'monthly'
 let countdownTimer = null
+let editingTransactionId = null
 
-function getCompletedResetCount() {
-  return Number(localStorage.getItem(COMPLETED_RESETS_KEY)) || 0
+function getDaysUsedCount() {
+  return Number(localStorage.getItem(DAYS_USED_KEY)) || 0
+}
+
+// Increments the usage streak the first time the app is opened on a new calendar day
+function trackDailyUsage() {
+  const today = new Date().toDateString()
+  const lastUsed = localStorage.getItem(LAST_USED_DATE_KEY)
+  if (lastUsed !== today) {
+    localStorage.setItem(DAYS_USED_KEY, String(getDaysUsedCount() + 1))
+    localStorage.setItem(LAST_USED_DATE_KEY, today)
+  }
 }
 
 function updateBudgieDesignSelector() {
   if (!budgieScene) return
-  const completedResets = getCompletedResetCount()
+  const daysUsed = getDaysUsedCount()
   const selectedDesign = localStorage.getItem(BUDGIE_DESIGN_KEY) || 'default'
   budgieScene.dataset.design = selectedDesign
 
   budgieDesignButtons.forEach((button) => {
-    const requiredResets = Number(button.dataset.unlockReset) || 0
-    const unlocked = completedResets >= requiredResets
+    const requiredDays = Number(button.dataset.unlockReset) || 0
+    const unlocked = daysUsed >= requiredDays
     button.disabled = !unlocked
     button.classList.toggle('is-locked', !unlocked)
     button.classList.toggle('is-selected', button.dataset.budgieDesign === selectedDesign)
-    button.title = unlocked ? `${button.dataset.budgieDesign} budgie` : `Unlock after ${requiredResets} completed reset${requiredResets === 1 ? '' : 's'}`
+    button.title = unlocked ? `${button.dataset.budgieDesign} budgie` : `Unlock after ${requiredDays} day${requiredDays === 1 ? '' : 's'} of use`
   })
 }
 
 function selectBudgieDesign(design) {
   localStorage.setItem(BUDGIE_DESIGN_KEY, design)
   updateBudgieDesignSelector()
+}
+
+function positionOnboarding(step) {
+  const target = step.selector ? document.querySelector(step.selector) : null
+
+  if (!target) {
+    onboardingHighlight.style.cssText = 'top:0;left:0;width:100vw;height:100vh;background:rgba(10,20,18,0.6);border-radius:0;box-shadow:none;'
+    onboardingTooltip.style.top = '50%'
+    onboardingTooltip.style.left = '50%'
+    onboardingTooltip.style.transform = 'translate(-50%, -50%)'
+    return
+  }
+
+  target.scrollIntoView({ block: 'center', behavior: 'auto' })
+
+  // wait a tick for layout to settle before measuring the target's position
+  requestAnimationFrame(() => {
+    const rect = target.getBoundingClientRect()
+    const padding = 8
+    onboardingHighlight.style.cssText = `
+      top:${rect.top - padding}px;
+      left:${rect.left - padding}px;
+      width:${rect.width + padding * 2}px;
+      height:${rect.height + padding * 2}px;
+      background:transparent;
+      border-radius:12px;
+      border:2px solid #ffd54f;
+      box-shadow:0 0 0 9999px rgba(10,20,18,0.6);
+    `
+
+    onboardingTooltip.style.transform = 'none'
+    const tooltipRect = onboardingTooltip.getBoundingClientRect()
+    let top = rect.bottom + 16
+    if (top + tooltipRect.height > window.innerHeight - 12) {
+      top = Math.max(12, rect.top - tooltipRect.height - 16)
+    }
+    let left = rect.left + rect.width / 2 - tooltipRect.width / 2
+    left = Math.min(Math.max(12, left), window.innerWidth - tooltipRect.width - 12)
+
+    onboardingTooltip.style.top = `${top}px`
+    onboardingTooltip.style.left = `${left}px`
+  })
+}
+
+function showOnboardingStep(index) {
+  const step = onboardingSteps[index]
+  if (!step) {
+    finishOnboarding()
+    return
+  }
+  onboardingStepCountEl.textContent = `${index + 1} / ${onboardingSteps.length}`
+  onboardingTitleEl.textContent = step.title
+  onboardingTextEl.textContent = step.text
+  onboardingNextBtn.textContent = index === onboardingSteps.length - 1 ? 'Got it!' : 'Next'
+  positionOnboarding(step)
+}
+
+function startOnboarding() {
+  onboardingIndex = 0
+  onboardingOverlay.classList.remove('hidden')
+  showOnboardingStep(onboardingIndex)
+}
+
+function finishOnboarding() {
+  onboardingOverlay.classList.add('hidden')
+  localStorage.setItem(ONBOARDING_KEY, 'true')
 }
 
 function playMidnightCutscene(scene) {
@@ -78,11 +216,6 @@ function playMidnightCutscene(scene) {
     midnightCutscene.classList.add('hidden')
     flock.innerHTML = ''
   }, 1450)
-}
-
-function isUnlockEligiblePeriod(endDate) {
-  const startDate = new Date(localStorage.getItem(PERIOD_START_KEY))
-  return Number.isFinite(startDate.getTime()) && endDate - startDate >= 7 * 24 * 60 * 60 * 1000
 }
 
 function getPeriodEndDate(period = currentPeriod) {
@@ -176,9 +309,6 @@ function checkAndResetPeriod() {
   if (now >= endDate) {
     // Save current period to history before resetting
     savePeriodToHistory()
-    if (isUnlockEligiblePeriod(endDate)) {
-      localStorage.setItem(COMPLETED_RESETS_KEY, String(getCompletedResetCount() + 1))
-    }
 
     // Reset transactions and period start
     transactions = []
@@ -405,6 +535,7 @@ function init(){
   periodSelect.value = currentPeriod
 
   transactions = loadTransactions()
+  trackDailyUsage()
   updateBudgieDesignSelector()
   updateUI()
   updateCountdown()
@@ -412,6 +543,10 @@ function init(){
   // Start countdown timer
   if (countdownTimer) clearInterval(countdownTimer)
   countdownTimer = setInterval(updateCountdown, 60000) // Update every minute
+
+  if (!localStorage.getItem(ONBOARDING_KEY)) {
+    startOnboarding()
+  }
 }
 
 function loadTransactions(){
@@ -435,46 +570,105 @@ function formatCurrency(num){
 
 let lastLeafState = 5
 
-function playChirp({ roaring = false } = {}) {
+let sharedAudioCtx = null
+
+// Reuses one AudioContext so rapid transactions don't hit browser context limits or miss scheduled sounds
+function getAudioContext() {
   const AudioCtx = window.AudioContext || window.webkitAudioContext
-  if (!AudioCtx) return Promise.resolve()
+  if (!AudioCtx) return null
+  if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+    sharedAudioCtx = new AudioCtx()
+  }
+  return sharedAudioCtx
+}
 
-  const audioCtx = new AudioCtx()
+function playChirp({ roaring = false } = {}) {
+  const audioCtx = getAudioContext()
+  if (!audioCtx) return Promise.resolve()
+
   const volume = roaring ? 0.26 : 0.08
-  const chirp = (startOffset, startFrequency, endFrequency) => {
-    const oscillator = audioCtx.createOscillator()
-    const gainNode = audioCtx.createGain()
-    const startTime = audioCtx.currentTime + startOffset
+  const scheduleChirps = () => {
+    const chirp = (startOffset, startFrequency, endFrequency) => {
+      const oscillator = audioCtx.createOscillator()
+      const gainNode = audioCtx.createGain()
+      const startTime = audioCtx.currentTime + startOffset
 
-    oscillator.type = roaring ? 'triangle' : 'sine'
-    oscillator.frequency.setValueAtTime(startFrequency, startTime)
-    oscillator.frequency.exponentialRampToValueAtTime(endFrequency, startTime + 0.07)
-    oscillator.frequency.exponentialRampToValueAtTime(endFrequency * 0.9, startTime + 0.12)
+      oscillator.type = roaring ? 'triangle' : 'sine'
+      oscillator.frequency.setValueAtTime(startFrequency, startTime)
+      oscillator.frequency.exponentialRampToValueAtTime(endFrequency, startTime + 0.07)
+      oscillator.frequency.exponentialRampToValueAtTime(endFrequency * 0.9, startTime + 0.12)
 
-    gainNode.gain.setValueAtTime(0.0001, startTime)
-    gainNode.gain.exponentialRampToValueAtTime(volume, startTime + 0.012)
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.14)
+      gainNode.gain.setValueAtTime(0.0001, startTime)
+      gainNode.gain.exponentialRampToValueAtTime(volume, startTime + 0.012)
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.14)
 
-    oscillator.connect(gainNode)
-    gainNode.connect(audioCtx.destination)
-    oscillator.start(startTime)
-    oscillator.stop(startTime + 0.15)
+      oscillator.connect(gainNode)
+      gainNode.connect(audioCtx.destination)
+      oscillator.start(startTime)
+      oscillator.stop(startTime + 0.15)
+    }
+
+    if (roaring) {
+      chirp(0, 1500, 3100)
+      chirp(0.1, 1700, 3400)
+      chirp(0.2, 1900, 3650)
+      chirp(0.34, 2200, 3900)
+    } else {
+      chirp(0, 2400, 3300)
+      chirp(0.11, 2800, 3700)
+    }
   }
 
-  if (roaring) {
-    chirp(0, 1500, 3100)
-    chirp(0.1, 1700, 3400)
-    chirp(0.2, 1900, 3650)
-    chirp(0.34, 2200, 3900)
-  } else {
-    chirp(0, 2400, 3300)
-    chirp(0.11, 2800, 3700)
+  if (audioCtx.state === 'suspended') {
+    return audioCtx.resume().then(scheduleChirps).catch(() => {})
   }
 
-  const closeAfter = roaring ? 560 : 300
-  return audioCtx.resume().catch(() => {}).finally(() => {
-    setTimeout(() => audioCtx.close(), closeAfter)
-  })
+  scheduleChirps()
+  return Promise.resolve()
+}
+
+const HEALTH_CHIME_NOTES = {
+  default: [660, 880],
+  sunset: [660, 880, 990],
+  rose: [660, 880, 990, 1320],
+  midnight: [660, 880, 990, 1320, 1760]
+}
+
+// Bright ascending chime for income — gains an extra note per bird tier so it sounds richer as skins upgrade
+function playHealthChime({ tier = 'default' } = {}) {
+  const audioCtx = getAudioContext()
+  if (!audioCtx) return Promise.resolve()
+
+  const notes = HEALTH_CHIME_NOTES[tier] || HEALTH_CHIME_NOTES.default
+  const volume = tier === 'midnight' ? 0.22 : tier === 'rose' ? 0.17 : tier === 'sunset' ? 0.13 : 0.11
+
+  const scheduleChime = () => {
+    notes.forEach((frequency, index) => {
+      const oscillator = audioCtx.createOscillator()
+      const gainNode = audioCtx.createGain()
+      const startTime = audioCtx.currentTime + index * 0.09
+
+      oscillator.type = 'sine'
+      oscillator.frequency.setValueAtTime(frequency, startTime)
+      oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.08, startTime + 0.12)
+
+      gainNode.gain.setValueAtTime(0.0001, startTime)
+      gainNode.gain.exponentialRampToValueAtTime(volume, startTime + 0.02)
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.24)
+
+      oscillator.connect(gainNode)
+      gainNode.connect(audioCtx.destination)
+      oscillator.start(startTime)
+      oscillator.stop(startTime + 0.26)
+    })
+  }
+
+  if (audioCtx.state === 'suspended') {
+    return audioCtx.resume().then(scheduleChime).catch(() => {})
+  }
+
+  scheduleChime()
+  return Promise.resolve()
 }
 
 function triggerExpenseAnimation() {
@@ -569,6 +763,73 @@ function triggerExpenseAnimation() {
   }, impactDuration)
 }
 
+const INCOME_BOOST_DURATIONS = { default: 780, sunset: 950, rose: 1100, midnight: 1650 }
+const INCOME_PLUS_COUNTS = { default: 3, sunset: 6, rose: 9, midnight: 14 }
+
+function triggerIncomeAnimation() {
+  const scene = document.querySelector('.budgie-scene')
+  const tree = document.getElementById('tree')
+  const waves = document.querySelectorAll('.sound-wave')
+  const flash = document.getElementById('income-flash')
+  const joySparks = document.querySelectorAll('.joy-spark')
+  if (!scene || !tree) return
+  const design = scene.dataset.design || 'default'
+  const boostDuration = INCOME_BOOST_DURATIONS[design] || INCOME_BOOST_DURATIONS.default
+
+  const releasePlusMarks = (count, duration) => {
+    for (let index = 0; index < count; index += 1) {
+      const mark = document.createElement('span')
+      mark.className = 'plus-mark'
+      mark.style.setProperty('--x', `${22 + (index % 6) * 26}px`)
+      mark.style.setProperty('--y', `${60 + Math.floor(index / 6) * 24}px`)
+      mark.style.setProperty('--delay', `${index * 45}ms`)
+      tree.appendChild(mark)
+      setTimeout(() => mark.remove(), duration)
+    }
+  }
+
+  scene.classList.remove('income-boost', 'income-glow')
+  tree.classList.remove('growing', 'grow-default', 'grow-sunset', 'grow-rose', 'grow-midnight')
+  waves.forEach((wave) => wave.classList.remove('active'))
+  joySparks.forEach((spark) => spark.classList.remove('active'))
+  if (flash) {
+    flash.classList.remove('active')
+  }
+
+  void scene.offsetWidth
+  scene.classList.add('income-boost')
+  tree.classList.add('growing', `grow-${design}`)
+  if (design === 'midnight') {
+    scene.classList.add('income-glow')
+  }
+
+  waves.forEach((wave) => {
+    void wave.offsetWidth
+    wave.classList.add('active')
+  })
+  joySparks.forEach((spark) => {
+    void spark.offsetWidth
+    spark.classList.add('active')
+  })
+  if (flash) {
+    void flash.offsetWidth
+    flash.classList.add('active')
+  }
+
+  releasePlusMarks(INCOME_PLUS_COUNTS[design] || INCOME_PLUS_COUNTS.default, boostDuration)
+  playHealthChime({ tier: design })
+
+  setTimeout(() => {
+    tree.classList.remove('growing', 'grow-default', 'grow-sunset', 'grow-rose', 'grow-midnight')
+    scene.classList.remove('income-boost', 'income-glow')
+    waves.forEach((wave) => wave.classList.remove('active'))
+    joySparks.forEach((spark) => spark.classList.remove('active'))
+    if (flash) {
+      flash.classList.remove('active')
+    }
+  }, boostDuration)
+}
+
 function updateTreeLeaves(score) {
   const leaves = Array.from(document.querySelectorAll('.leaf'))
   const thresholds = [75, 50, 25, 10, 5]
@@ -653,6 +914,51 @@ function renderTransactions(){
     const li = document.createElement('li')
     li.className = 'tx-item'
 
+    if (tx.id === editingTransactionId) {
+      li.classList.add('tx-editing')
+
+      const editForm = document.createElement('div')
+      editForm.className = 'tx-edit-form'
+
+      const descInput = document.createElement('input')
+      descInput.type = 'text'
+      descInput.className = 'tx-edit-desc'
+      descInput.value = tx.description
+      descInput.setAttribute('aria-label', 'Edit description')
+
+      const amountInput = document.createElement('input')
+      amountInput.type = 'number'
+      amountInput.step = '0.01'
+      amountInput.className = 'tx-edit-amount'
+      amountInput.value = tx.amount
+      amountInput.setAttribute('aria-label', 'Edit amount')
+
+      const editActions = document.createElement('div')
+      editActions.className = 'tx-edit-actions'
+      const saveBtn = document.createElement('button')
+      saveBtn.type = 'button'
+      saveBtn.className = 'tx-edit-save'
+      saveBtn.textContent = 'Save'
+      saveBtn.addEventListener('click', () => saveEditedTransaction(tx.id, descInput.value, amountInput.value))
+
+      const cancelBtn = document.createElement('button')
+      cancelBtn.type = 'button'
+      cancelBtn.className = 'tx-edit-cancel'
+      cancelBtn.textContent = 'Cancel'
+      cancelBtn.addEventListener('click', () => cancelEditTransaction())
+
+      editActions.appendChild(saveBtn)
+      editActions.appendChild(cancelBtn)
+
+      editForm.appendChild(descInput)
+      editForm.appendChild(amountInput)
+      editForm.appendChild(editActions)
+
+      li.appendChild(editForm)
+      txListEl.appendChild(li)
+      return
+    }
+
     const left = document.createElement('div')
     left.className = 'tx-left'
     const desc = document.createElement('div')
@@ -674,6 +980,12 @@ function renderTransactions(){
 
     const actions = document.createElement('div')
     actions.className = 'tx-actions'
+    const edit = document.createElement('button')
+    edit.title = 'Edit'
+    edit.innerHTML = '✏️'
+    edit.addEventListener('click', () => editTransaction(tx.id))
+    actions.appendChild(edit)
+
     const del = document.createElement('button')
     del.title = 'Delete'
     del.innerHTML = '🗑️'
@@ -689,10 +1001,33 @@ function renderTransactions(){
   })
 }
 
+function editTransaction(id){
+  editingTransactionId = id
+  renderTransactions()
+}
+
+function cancelEditTransaction(){
+  editingTransactionId = null
+  renderTransactions()
+}
+
+function saveEditedTransaction(id, description, amount){
+  if (!description.trim() || amount === '' || Number.isNaN(Number(amount))) return
+  const tx = transactions.find(t => t.id === id)
+  if (!tx) return
+  tx.description = description.trim()
+  tx.amount = Number(amount)
+  editingTransactionId = null
+  saveTransactions()
+  updateUI()
+}
+
 function addTransaction(description, amount, type){
   const tx = { id: Date.now(), description: description.trim(), amount: Number(amount), type }
   if (type === 'expense') {
     triggerExpenseAnimation()
+  } else {
+    triggerIncomeAnimation()
   }
   transactions.push(tx)
   saveTransactions()
@@ -701,6 +1036,7 @@ function addTransaction(description, amount, type){
 
 function removeTransaction(id){
   transactions = transactions.filter(t => t.id !== id)
+  if (editingTransactionId === id) editingTransactionId = null
   saveTransactions()
   updateUI()
 }
@@ -730,6 +1066,23 @@ form.addEventListener('submit', e => {
 
 clearBtn.addEventListener('click', clearAll)
 
+onboardingNextBtn.addEventListener('click', () => {
+  onboardingIndex += 1
+  if (onboardingIndex >= onboardingSteps.length) {
+    finishOnboarding()
+  } else {
+    showOnboardingStep(onboardingIndex)
+  }
+})
+
+onboardingSkipBtn.addEventListener('click', finishOnboarding)
+
+window.addEventListener('resize', () => {
+  if (!onboardingOverlay.classList.contains('hidden')) {
+    positionOnboarding(onboardingSteps[onboardingIndex])
+  }
+})
+
 budgieDesignButtons.forEach((button) => {
   button.addEventListener('click', () => selectBudgieDesign(button.dataset.budgieDesign))
 })
@@ -737,9 +1090,11 @@ budgieDesignButtons.forEach((button) => {
 periodSelect.addEventListener('change', (e) => {
   currentPeriod = e.target.value
   localStorage.setItem(PERIOD_KEY, currentPeriod)
-  localStorage.setItem(PERIOD_START_KEY, new Date().toISOString())
-  transactions = []
-  saveTransactions()
+  // Only recalculate the countdown for the new period length; keep existing transactions intact
+  localStorage.removeItem(PERIOD_END_KEY)
+  if (!localStorage.getItem(PERIOD_START_KEY)) {
+    localStorage.setItem(PERIOD_START_KEY, new Date().toISOString())
+  }
   updateUI()
   updateCountdown()
 })
