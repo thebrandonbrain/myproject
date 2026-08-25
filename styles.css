@@ -287,6 +287,7 @@ body {
   border: 1px solid rgba(255,255,255,0.8);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
   overflow: visible;
+  container-type: inline-size;
 }
 
 .card .label {
@@ -298,10 +299,11 @@ body {
 }
 
 .card .value {
-  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-size: clamp(1rem, 12cqw, 2rem);
   font-weight: 800;
   white-space: nowrap;
-  overflow: visible;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .income-card .value { color: var(--income); }

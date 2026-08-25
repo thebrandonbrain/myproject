@@ -15,7 +15,7 @@ const RATE_CACHE_TTL_MS = 30 * 60 * 1000
 // Approximate fallback used only when the live rate API is unreachable
 const STATIC_FALLBACK_RATES = {
   USD: 1, EUR: 0.92, GBP: 0.79, JPY: 151, AUD: 1.52, CAD: 1.36,
-  INR: 83.3, CNY: 7.24, SGD: 1.34, CHF: 0.88
+  INR: 83.3, CNY: 7.24, SGD: 1.34, CHF: 0.88, MYR: 4.47, IDR: 15800
 }
 
 const form = document.getElementById('tx-form')
@@ -100,7 +100,7 @@ let transactions = []
 let currentPeriod = localStorage.getItem(PERIOD_KEY) || 'monthly'
 let countdownTimer = null
 let editingTransactionId = null
-let displayCurrency = localStorage.getItem(DISPLAY_CURRENCY_KEY) || 'USD'
+let displayCurrency = localStorage.getItem(DISPLAY_CURRENCY_KEY) || 'SGD'
 let exchangeRates = STATIC_FALLBACK_RATES
 
 function loadRateCache() {

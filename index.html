@@ -58,7 +58,10 @@
       <div class="summary-controls">
         <label for="display-currency-select">Display currency:</label>
         <select id="display-currency-select">
-          <option value="USD" selected>USD $</option>
+          <option value="SGD" selected>SGD S$</option>
+          <option value="USD">USD $</option>
+          <option value="MYR">MYR RM</option>
+          <option value="IDR">IDR Rp</option>
           <option value="EUR">EUR €</option>
           <option value="GBP">GBP £</option>
           <option value="JPY">JPY ¥</option>
@@ -66,7 +69,6 @@
           <option value="CAD">CAD C$</option>
           <option value="INR">INR ₹</option>
           <option value="CNY">CNY ¥</option>
-          <option value="SGD">SGD S$</option>
           <option value="CHF">CHF Fr</option>
         </select>
         <span id="rate-status" class="rate-status"></span>
@@ -192,7 +194,10 @@
           <input type="text" id="description" placeholder="Description (e.g., Salary, Coffee)" required>
           <input type="number" id="amount" placeholder="Amount" step="0.01" required>
           <select id="tx-currency" title="Currency (optional)">
-            <option value="USD" selected>USD $</option>
+            <option value="SGD" selected>SGD S$</option>
+            <option value="USD">USD $</option>
+            <option value="MYR">MYR RM</option>
+            <option value="IDR">IDR Rp</option>
             <option value="EUR">EUR €</option>
             <option value="GBP">GBP £</option>
             <option value="JPY">JPY ¥</option>
@@ -200,7 +205,6 @@
             <option value="CAD">CAD C$</option>
             <option value="INR">INR ₹</option>
             <option value="CNY">CNY ¥</option>
-            <option value="SGD">SGD S$</option>
             <option value="CHF">CHF Fr</option>
           </select>
           <select id="type">
