@@ -713,6 +713,15 @@ function playHealthChime({ tier = 'default' } = {}) {
   return Promise.resolve()
 }
 
+function scrollToTreeIfMobile() {
+  if (window.matchMedia('(max-width: 899px)').matches) {
+    const target = document.querySelector('.tree-panel')
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }
+}
+
 function triggerExpenseAnimation() {
   const scene = document.querySelector('.budgie-scene')
   const tree = document.getElementById('tree')
@@ -1068,6 +1077,7 @@ function saveEditedTransaction(id, description, amount){
 }
 
 function addTransaction(description, amount, type, currency){
+  scrollToTreeIfMobile()
   const tx = { id: Date.now(), description: description.trim(), amount: Number(amount), type, currency: currency || 'USD' }
   if (type === 'expense') {
     triggerExpenseAnimation()
