@@ -100,6 +100,38 @@ let transactions = []
 let currentPeriod = localStorage.getItem(PERIOD_KEY) || 'monthly'
 let countdownTimer = null
 let editingTransactionId = null
+let displayCurrency = localStorage.getItem(DISPLAY_CURRENCY_KEY) || 'USD'
+let exchangeRates = STATIC_FALLBACK_RATES
+
+function loadRateCache() {
+  try {
+    const raw = localStorage.getItem(RATE_CACHE_KEY)
+    if (!raw) return null
+    const cache = JSON.parse(raw)
+    if (Date.now() - cache.timestamp > RATE_CACHE_TTL_MS) return null
+    return cache.rates
+  } catch (e) { return null }
+}
+
+async function refreshExchangeRates() {
+  const cached = loadRateCache()
+  if (cached) {
+    exchangeRates = cached
+    rateStatusEl.textContent = 'Rates cached'
+    return
+  }
+  try {
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD')
+    const data = await res.json()
+    exchangeRates = data.rates
+    localStorage.setItem(RATE_CACHE_KEY, JSON.stringify({ rates: exchangeRates, timestamp: Date.now() }))
+    rateStatusEl.textContent = 'Live rates'
+  } catch (e) {
+    exchangeRates = STATIC_FALLBACK_RATES
+    rateStatusEl.textContent = 'Using offline rates'
+  }
+  updateUI()
+}
 
 function getDaysUsedCount() {
   return Number(localStorage.getItem(DAYS_USED_KEY)) || 0
@@ -534,6 +566,10 @@ function init(){
   // Set current period from select
   periodSelect.value = currentPeriod
 
+  // Set display currency dropdown to the saved preference, and load rates
+  displayCurrencySelect.value = displayCurrency
+  refreshExchangeRates()
+
   transactions = loadTransactions()
   trackDailyUsage()
   updateBudgieDesignSelector()
@@ -563,9 +599,15 @@ function saveTransactions(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions))
 }
 
-function formatCurrency(num){
+function convertAmount(amount, fromCurrency, toCurrency) {
+  const from = exchangeRates[fromCurrency] ?? 1
+  const to = exchangeRates[toCurrency] ?? 1
+  return (amount / from) * to
+}
+
+function formatCurrency(num, currency = displayCurrency){
   const abs = Math.abs(num)
-  return (num < 0 ? '-' : '') + new Intl.NumberFormat(undefined, {style:'currency',currency:'USD',maximumFractionDigits:2}).format(abs)
+  return (num < 0 ? '-' : '') + new Intl.NumberFormat(undefined, {style:'currency',currency,maximumFractionDigits:2}).format(abs)
 }
 
 let lastLeafState = 5
@@ -859,8 +901,10 @@ function updateTreeLeaves(score) {
 }
 
 function updateSummary(){
-  const incomes = transactions.filter(t => t.type === 'income').reduce((s,t)=>s + Number(t.amount),0)
-  const expenses = transactions.filter(t => t.type === 'expense').reduce((s,t)=>s + Number(t.amount),0)
+  const incomes = transactions.filter(t => t.type === 'income')
+    .reduce((s,t)=>s + convertAmount(Number(t.amount), t.currency || 'USD', displayCurrency), 0)
+  const expenses = transactions.filter(t => t.type === 'expense')
+    .reduce((s,t)=>s + convertAmount(Number(t.amount), t.currency || 'USD', displayCurrency), 0)
   const balance = incomes - expenses
   incomeEl.textContent = formatCurrency(incomes)
   expensesEl.textContent = formatCurrency(expenses)
@@ -975,7 +1019,8 @@ function renderTransactions(){
     right.className = 'tx-right'
     const amt = document.createElement('div')
     amt.className = 'tx-amount ' + (tx.type === 'income' ? 'income' : 'expense')
-    const signed = tx.type === 'income' ? Number(tx.amount) : -Math.abs(Number(tx.amount))
+    const converted = convertAmount(Number(tx.amount), tx.currency || 'USD', displayCurrency)
+    const signed = tx.type === 'income' ? converted : -Math.abs(converted)
     amt.textContent = formatCurrency(signed)
 
     const actions = document.createElement('div')
@@ -1022,8 +1067,8 @@ function saveEditedTransaction(id, description, amount){
   updateUI()
 }
 
-function addTransaction(description, amount, type){
-  const tx = { id: Date.now(), description: description.trim(), amount: Number(amount), type }
+function addTransaction(description, amount, type, currency){
+  const tx = { id: Date.now(), description: description.trim(), amount: Number(amount), type, currency: currency || 'USD' }
   if (type === 'expense') {
     triggerExpenseAnimation()
   } else {
@@ -1058,8 +1103,9 @@ form.addEventListener('submit', e => {
   const desc = descEl.value
   const amount = amountEl.value
   const type = typeEl.value
+  const currency = txCurrencySelect.value
   if(!desc || !amount) return
-  addTransaction(desc, amount, type)
+  addTransaction(desc, amount, type, currency)
   form.reset()
   descEl.focus()
 })
@@ -1097,6 +1143,12 @@ periodSelect.addEventListener('change', (e) => {
   }
   updateUI()
   updateCountdown()
+})
+
+displayCurrencySelect.addEventListener('change', (e) => {
+  displayCurrency = e.target.value
+  localStorage.setItem(DISPLAY_CURRENCY_KEY, displayCurrency)
+  updateUI()
 })
 
 historyBtn.addEventListener('click', () => {
