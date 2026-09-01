@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Budgiet</title>
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Applies the saved theme before first paint so there's no light-mode flash
+    document.documentElement.dataset.theme = localStorage.getItem('budgiet_theme') || 'light'
+  </script>
 </head>
 <body>
   <div id="expense-flash" class="expense-flash" aria-hidden="true"></div>
@@ -16,6 +20,7 @@
   </div>
   <div class="app">
     <header class="header">
+      <button id="menu-toggle" class="menu-toggle-btn" type="button" aria-label="Open menu" aria-haspopup="true" aria-expanded="false">☰</button>
       <div class="title-wrap">
         <div class="budgie-header">
           <span class="budgie-icon" aria-hidden="true">
@@ -91,24 +96,6 @@
       <section class="budget-health" aria-label="Budget health tree">
         <div class="tree-panel">
           <div class="tree-stage">
-            <div class="budgie-designs" role="group" aria-label="Budgie designs">
-              <button class="budgie-design is-selected" type="button" data-budgie-design="default" title="Ocean budgie" aria-label="Ocean budgie">
-                <span class="budgie-design-icon ocean-budgie" aria-hidden="true"></span>
-              </button>
-              <button class="budgie-design" type="button" data-budgie-design="sunset" data-unlock-reset="2" title="Unlock after 2 days of use" aria-label="Sunset budgie, unlock after 2 days of use" disabled>
-                <span class="budgie-design-icon sunset-budgie" aria-hidden="true"></span>
-                <span class="design-lock" aria-hidden="true">&#128274;</span>
-              </button>
-              <button class="budgie-design" type="button" data-budgie-design="rose" data-unlock-reset="3" title="Unlock after 3 days of use" aria-label="Rose budgie, unlock after 3 days of use" disabled>
-                <span class="budgie-design-icon rose-budgie" aria-hidden="true"></span>
-                <span class="design-lock" aria-hidden="true">&#128274;</span>
-              </button>
-              <button class="budgie-design" type="button" data-budgie-design="midnight" data-unlock-reset="4" title="Unlock after 4 days of use" aria-label="Midnight budgie, unlock after 4 days of use" disabled>
-                <span class="budgie-design-icon midnight-budgie" aria-hidden="true"></span>
-                <span class="design-lock" aria-hidden="true">&#128274;</span>
-              </button>
-            </div>
-            <p class="skins-hint">Unlock new skins as you progress day by day. Use Budgiet every day to unlock new skins.</p>
             <div class="danger-icons" aria-hidden="true">
               <div class="danger-heart danger-heart-left">💔</div>
               <div class="danger-heart danger-heart-right">💔</div>
@@ -228,6 +215,127 @@
         <span>✓ Don't Worry! The data is autosaved to your local device</span>
       </div>
     </footer>
+  </div>
+
+  <!-- Side Menu -->
+  <div id="side-menu-overlay" class="side-menu-overlay hidden">
+    <div class="side-menu-scrim" data-close-menu></div>
+    <nav id="side-menu" class="side-menu" aria-label="Settings menu">
+      <div id="menu-view-root" class="menu-view is-active" data-view="root">
+        <div class="side-menu-header">
+          <h2>Menu</h2>
+          <button class="icon-btn" data-close-menu aria-label="Close menu">✕</button>
+        </div>
+        <ul class="side-menu-list">
+          <li>
+            <button class="side-menu-item" type="button" data-open-view="budgie">
+              <span class="side-menu-icon" aria-hidden="true">🐦</span>
+              <span>Customise Budgie</span>
+              <span class="side-menu-arrow" aria-hidden="true">›</span>
+            </button>
+          </li>
+          <li>
+            <button class="side-menu-item" type="button" data-open-view="theme">
+              <span class="side-menu-icon" aria-hidden="true">🌗</span>
+              <span>Dark Mode / Light Mode</span>
+              <span class="side-menu-arrow" aria-hidden="true">›</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div id="menu-view-budgie" class="menu-view" data-view="budgie">
+        <div class="side-menu-header">
+          <button class="icon-btn" data-back-view aria-label="Back to menu">←</button>
+          <h2>Customise Budgie</h2>
+          <button class="icon-btn" data-close-menu aria-label="Close menu">✕</button>
+        </div>
+        <p class="side-menu-hint">Unlock new skins as you progress day by day. Use Budgiet every day to unlock new skins.</p>
+        <div class="budgie-designs skin-gallery" role="group" aria-label="Budgie designs">
+          <button class="budgie-design is-selected" type="button" data-budgie-design="default" title="Ocean budgie" aria-label="Ocean budgie">
+            <span class="skin-preview">
+              <svg class="skin-preview-budgie ocean-budgie" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M69 76 20 104 49 62Z" fill="#247d82"/><path d="M59 75 27 92 50 57Z" fill="#7fd0c0"/>
+                <ellipse cx="81" cy="70" rx="42" ry="34" fill="#4bbf9d"/><ellipse cx="92" cy="75" rx="27" ry="26" fill="#f2ec9b"/>
+                <path d="M51 60c9-26 39-32 54-9-8 7-17 11-28 12-10 2-19 1-26-3Z" fill="#236c72"/>
+                <path d="M53 61c17-10 35-9 47 0-10 16-24 22-39 15Z" fill="#2d8990"/><path d="M58 64c10-7 21-8 31-3M61 72c9-6 18-6 27-2" fill="none" stroke="#8cd9b3" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="110" cy="45" r="27" fill="#f0e879"/><path d="M92 37c8-16 27-19 39-4-8 7-21 9-39 4Z" fill="#fff5c6"/>
+                <circle cx="119" cy="43" r="5.5" fill="#1d3036"/><circle cx="121" cy="41" r="1.8" fill="#fff"/><path d="M131 50l19 6-18 7Z" fill="#ef9d3f"/><path d="M107 55c5 5 12 5 17 0" fill="none" stroke="#62a88c" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M82 103v8m13-8v8" stroke="#d08b56" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="skin-name">Ocean</span>
+            <span class="design-lock" aria-hidden="true">&#128274;</span>
+          </button>
+          <button class="budgie-design" type="button" data-budgie-design="sunset" data-unlock-reset="2" title="Unlock after 2 days of use" aria-label="Sunset budgie, unlock after 2 days of use" disabled>
+            <span class="skin-preview">
+              <svg class="skin-preview-budgie sunset-budgie" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M69 76 20 104 49 62Z" fill="#247d82"/><path d="M59 75 27 92 50 57Z" fill="#7fd0c0"/>
+                <ellipse cx="81" cy="70" rx="42" ry="34" fill="#4bbf9d"/><ellipse cx="92" cy="75" rx="27" ry="26" fill="#f2ec9b"/>
+                <path d="M51 60c9-26 39-32 54-9-8 7-17 11-28 12-10 2-19 1-26-3Z" fill="#236c72"/>
+                <path d="M53 61c17-10 35-9 47 0-10 16-24 22-39 15Z" fill="#2d8990"/><path d="M58 64c10-7 21-8 31-3M61 72c9-6 18-6 27-2" fill="none" stroke="#8cd9b3" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="110" cy="45" r="27" fill="#f0e879"/><path d="M92 37c8-16 27-19 39-4-8 7-21 9-39 4Z" fill="#fff5c6"/>
+                <circle cx="119" cy="43" r="5.5" fill="#1d3036"/><circle cx="121" cy="41" r="1.8" fill="#fff"/><path d="M131 50l19 6-18 7Z" fill="#ef9d3f"/><path d="M107 55c5 5 12 5 17 0" fill="none" stroke="#62a88c" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M82 103v8m13-8v8" stroke="#d08b56" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="skin-name">Sunset</span>
+            <span class="design-lock" aria-hidden="true">&#128274;</span>
+            <span class="skin-unlock-note">Unlock after 2 days</span>
+          </button>
+          <button class="budgie-design" type="button" data-budgie-design="rose" data-unlock-reset="3" title="Unlock after 3 days of use" aria-label="Rose budgie, unlock after 3 days of use" disabled>
+            <span class="skin-preview">
+              <svg class="skin-preview-budgie rose-budgie" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M69 76 20 104 49 62Z" fill="#247d82"/><path d="M59 75 27 92 50 57Z" fill="#7fd0c0"/>
+                <ellipse cx="81" cy="70" rx="42" ry="34" fill="#4bbf9d"/><ellipse cx="92" cy="75" rx="27" ry="26" fill="#f2ec9b"/>
+                <path d="M51 60c9-26 39-32 54-9-8 7-17 11-28 12-10 2-19 1-26-3Z" fill="#236c72"/>
+                <path d="M53 61c17-10 35-9 47 0-10 16-24 22-39 15Z" fill="#2d8990"/><path d="M58 64c10-7 21-8 31-3M61 72c9-6 18-6 27-2" fill="none" stroke="#8cd9b3" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="110" cy="45" r="27" fill="#f0e879"/><path d="M92 37c8-16 27-19 39-4-8 7-21 9-39 4Z" fill="#fff5c6"/>
+                <circle cx="119" cy="43" r="5.5" fill="#1d3036"/><circle cx="121" cy="41" r="1.8" fill="#fff"/><path d="M131 50l19 6-18 7Z" fill="#ef9d3f"/><path d="M107 55c5 5 12 5 17 0" fill="none" stroke="#62a88c" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M82 103v8m13-8v8" stroke="#d08b56" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="skin-name">Rose</span>
+            <span class="design-lock" aria-hidden="true">&#128274;</span>
+            <span class="skin-unlock-note">Unlock after 3 days</span>
+          </button>
+          <button class="budgie-design" type="button" data-budgie-design="midnight" data-unlock-reset="4" title="Unlock after 4 days of use" aria-label="Midnight budgie, unlock after 4 days of use" disabled>
+            <span class="skin-preview">
+              <svg class="skin-preview-budgie midnight-budgie" viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M69 76 20 104 49 62Z" fill="#247d82"/><path d="M59 75 27 92 50 57Z" fill="#7fd0c0"/>
+                <ellipse cx="81" cy="70" rx="42" ry="34" fill="#4bbf9d"/><ellipse cx="92" cy="75" rx="27" ry="26" fill="#f2ec9b"/>
+                <path d="M51 60c9-26 39-32 54-9-8 7-17 11-28 12-10 2-19 1-26-3Z" fill="#236c72"/>
+                <path d="M53 61c17-10 35-9 47 0-10 16-24 22-39 15Z" fill="#2d8990"/><path d="M58 64c10-7 21-8 31-3M61 72c9-6 18-6 27-2" fill="none" stroke="#8cd9b3" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="110" cy="45" r="27" fill="#f0e879"/><path d="M92 37c8-16 27-19 39-4-8 7-21 9-39 4Z" fill="#fff5c6"/>
+                <circle cx="119" cy="43" r="5.5" fill="#1d3036"/><circle cx="121" cy="41" r="1.8" fill="#fff"/><path d="M131 50l19 6-18 7Z" fill="#ef9d3f"/><path d="M107 55c5 5 12 5 17 0" fill="none" stroke="#62a88c" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M82 103v8m13-8v8" stroke="#d08b56" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="skin-name">Midnight</span>
+            <span class="design-lock" aria-hidden="true">&#128274;</span>
+            <span class="skin-unlock-note">Unlock after 4 days</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="menu-view-theme" class="menu-view" data-view="theme">
+        <div class="side-menu-header">
+          <button class="icon-btn" data-back-view aria-label="Back to menu">←</button>
+          <h2>Appearance</h2>
+          <button class="icon-btn" data-close-menu aria-label="Close menu">✕</button>
+        </div>
+        <div class="theme-option-card">
+          <div class="theme-option-text">
+            <strong id="theme-status-label">Light mode</strong>
+            <span>Switch between a bright or dark look for Budgiet.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider" aria-hidden="true"></span>
+          </label>
+        </div>
+      </div>
+    </nav>
   </div>
 
   <!-- History Modal -->

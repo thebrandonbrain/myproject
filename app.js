@@ -11,6 +11,7 @@ const ONBOARDING_KEY = 'budgiet_onboarding_complete'
 const DISPLAY_CURRENCY_KEY = 'budgiet_display_currency'
 const RATE_CACHE_KEY = 'budgiet_rate_cache'
 const RATE_CACHE_TTL_MS = 30 * 60 * 1000
+const THEME_KEY = 'budgiet_theme'
 
 // Approximate fallback used only when the live rate API is unreachable
 const STATIC_FALLBACK_RATES = {
@@ -56,6 +57,14 @@ const onboardingSkipBtn = document.getElementById('onboarding-skip')
 const txCurrencySelect = document.getElementById('tx-currency')
 const displayCurrencySelect = document.getElementById('display-currency-select')
 const rateStatusEl = document.getElementById('rate-status')
+const menuToggleBtn = document.getElementById('menu-toggle')
+const sideMenuOverlay = document.getElementById('side-menu-overlay')
+const menuViews = document.querySelectorAll('.menu-view')
+const menuOpenButtons = document.querySelectorAll('[data-open-view]')
+const menuBackButtons = document.querySelectorAll('[data-back-view]')
+const menuCloseButtons = document.querySelectorAll('[data-close-menu]')
+const themeToggle = document.getElementById('theme-toggle')
+const themeStatusLabel = document.getElementById('theme-status-label')
 
 const onboardingSteps = [
   {
@@ -88,9 +97,9 @@ const onboardingSteps = [
     text: 'Pick how often your budget resets. Changing this only updates the countdown — your transactions stay safe.'
   },
   {
-    selector: '.budgie-designs',
+    selector: '#menu-toggle',
     title: 'Unlock new bird skins',
-    text: 'Use Budgiet every day to unlock new skins for your budget tree bird!'
+    text: 'Open the menu and tap "Customise Budgie" — use Budgiet every day to unlock new skins for your budget tree bird!'
   }
 ]
 
@@ -137,7 +146,8 @@ function getDaysUsedCount() {
   return Number(localStorage.getItem(DAYS_USED_KEY)) || 0
 }
 
-// Increments the usage streak the first time the app is opened on a new calendar day
+// Counts distinct calendar days the app has been opened on; skipped days don't reset it,
+// they just delay the count (e.g. login day 1, skip day 2, login day 3 -> count is 2, not 3)
 function trackDailyUsage() {
   const today = new Date().toDateString()
   const lastUsed = localStorage.getItem(LAST_USED_DATE_KEY)
@@ -166,6 +176,28 @@ function updateBudgieDesignSelector() {
 function selectBudgieDesign(design) {
   localStorage.setItem(BUDGIE_DESIGN_KEY, design)
   updateBudgieDesignSelector()
+}
+
+function openMenuView(viewName) {
+  menuViews.forEach(view => view.classList.toggle('is-active', view.dataset.view === viewName))
+}
+
+function openSideMenu() {
+  sideMenuOverlay.classList.remove('hidden')
+  menuToggleBtn.setAttribute('aria-expanded', 'true')
+  openMenuView('root')
+}
+
+function closeSideMenu() {
+  sideMenuOverlay.classList.add('hidden')
+  menuToggleBtn.setAttribute('aria-expanded', 'false')
+}
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme
+  localStorage.setItem(THEME_KEY, theme)
+  if (themeToggle) themeToggle.checked = theme === 'dark'
+  if (themeStatusLabel) themeStatusLabel.textContent = theme === 'dark' ? 'Dark mode' : 'Light mode'
 }
 
 function positionOnboarding(step) {
@@ -597,7 +629,15 @@ function loadTransactions(){
 
 function saveTransactions(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions))
+  // Lets the browser extension's content script know the log just changed
+  window.dispatchEvent(new CustomEvent('budgiet:tx-saved'))
 }
+
+// Fired by the Budgiet extension when it logs a transaction while this page is open
+window.addEventListener('budgiet:refresh', () => {
+  transactions = loadTransactions()
+  updateUI()
+})
 
 function convertAmount(amount, fromCurrency, toCurrency) {
   const from = exchangeRates[fromCurrency] ?? 1
@@ -1226,8 +1266,20 @@ document.getElementById('preset-year').addEventListener('click', () => {
   setPreset(getYearStart(), getYearEnd())
 })
 
+menuToggleBtn.addEventListener('click', openSideMenu)
+menuCloseButtons.forEach(btn => btn.addEventListener('click', closeSideMenu))
+menuBackButtons.forEach(btn => btn.addEventListener('click', () => openMenuView('root')))
+menuOpenButtons.forEach(btn => btn.addEventListener('click', () => openMenuView(btn.dataset.openView)))
+
+themeToggle.addEventListener('change', () => {
+  applyTheme(themeToggle.checked ? 'dark' : 'light')
+})
+
 // init
 init()
+
+// Reflects the theme applied before first paint in the toggle switch
+applyTheme(document.documentElement.dataset.theme || 'light')
 
 // init
 updateUI()

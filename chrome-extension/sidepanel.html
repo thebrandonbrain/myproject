@@ -8,48 +8,89 @@
   </head>
   <body>
     <div class="panel">
-      <div class="header">
-        <div>
-          <div class="eyebrow">Quick add</div>
-          <h1>Budgiet</h1>
-        </div>
-      </div>
+      <div class="glow-blob glow-blob-1" aria-hidden="true"></div>
+      <div class="glow-blob glow-blob-2" aria-hidden="true"></div>
 
-      <form id="add-form" class="card">
-        <h2>Add entry</h2>
+      <header class="hero">
+        <span class="hero-budgie" id="hero-budgie" aria-hidden="true">
+          <svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg">
+            <path d="M69 76 20 104 49 62Z" fill="#1f6d72"/><path d="M59 75 27 92 50 57Z" fill="#7fd0c0"/>
+            <ellipse cx="81" cy="70" rx="42" ry="34" fill="#3fd7c4"/><ellipse cx="92" cy="75" rx="27" ry="26" fill="#fff3b0"/>
+            <path d="M51 60c9-26 39-32 54-9-8 7-17 11-28 12-10 2-19 1-26-3Z" fill="#1b5f66"/>
+            <path d="M53 61c17-10 35-9 47 0-10 16-24 22-39 15Z" fill="#2fa6ad"/><path d="M58 64c10-7 21-8 31-3M61 72c9-6 18-6 27-2" fill="none" stroke="#a4ecd8" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="110" cy="45" r="27" fill="#ffe066"/><path d="M92 37c8-16 27-19 39-4-8 7-21 9-39 4Z" fill="#fff8d6"/>
+            <circle cx="119" cy="43" r="5.5" fill="#1d3036"/><circle cx="121" cy="41" r="1.8" fill="#fff"/><path d="M131 50l19 6-18 7Z" fill="#ff9f2e"/><path d="M107 55c5 5 12 5 17 0" fill="none" stroke="#6fd7b0" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M82 103v8m13-8v8" stroke="#d08b56" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <div class="hero-text">
+          <div class="eyebrow">Budgiet</div>
+          <h1>Quick Add</h1>
+          <p class="hero-tag">Log it here, see it everywhere ✨</p>
+        </div>
+      </header>
+
+      <section class="balance-card" id="balance-card">
+        <div class="balance-label">Your balance right now</div>
+        <div class="balance-value" id="balance">$0.00</div>
+        <div class="mini-stats">
+          <div class="mini-stat income">
+            <span class="mini-icon">📈</span>
+            <div>
+              <span class="mini-label">Income</span>
+              <strong id="income">$0.00</strong>
+            </div>
+          </div>
+          <div class="mini-stat expense">
+            <span class="mini-icon">📉</span>
+            <div>
+              <span class="mini-label">Expenses</span>
+              <strong id="expenses">$0.00</strong>
+            </div>
+          </div>
+        </div>
+        <div class="sync-note" id="sync-note">Loading your budget…</div>
+      </section>
+
+      <form id="add-form" class="card form-card">
+        <h2>Log a transaction</h2>
         <label>
           Description
-          <input id="description" type="text" maxlength="80" placeholder="Groceries, rent, salary..." />
+          <input id="description" type="text" maxlength="80" placeholder="Groceries, rent, salary..." autocomplete="off" />
         </label>
-        <label>
-          Amount
-          <input id="amount" type="number" min="0.01" step="0.01" placeholder="0.00" />
-        </label>
-        <label>
-          Type
-          <select id="type">
-            <option value="expense">Expense</option>
-            <option value="income">Savings / Income</option>
-          </select>
-        </label>
-        <button type="submit" class="primary">Add to budget</button>
+        <div class="row">
+          <label>
+            Amount
+            <input id="amount" type="number" min="0.01" step="0.01" placeholder="0.00" />
+          </label>
+          <label>
+            Currency
+            <select id="currency">
+              <option value="SGD">SGD S$</option>
+              <option value="USD">USD $</option>
+              <option value="MYR">MYR RM</option>
+              <option value="IDR">IDR Rp</option>
+              <option value="EUR">EUR €</option>
+              <option value="GBP">GBP £</option>
+              <option value="JPY">JPY ¥</option>
+              <option value="AUD">AUD A$</option>
+              <option value="CAD">CAD C$</option>
+              <option value="INR">INR ₹</option>
+              <option value="CNY">CNY ¥</option>
+              <option value="CHF">CHF Fr</option>
+            </select>
+          </label>
+        </div>
+        <div class="type-toggle" role="radiogroup" aria-label="Transaction type">
+          <button type="button" class="type-btn expense is-active" data-type="expense" aria-pressed="true">💸 Expense</button>
+          <button type="button" class="type-btn income" data-type="income" aria-pressed="false">💰 Income</button>
+        </div>
+        <button type="submit" class="primary">Add to Budgiet</button>
       </form>
 
       <div id="status" class="status" aria-live="polite"></div>
-      <div class="summary">
-        <div>
-          <span>Income</span>
-          <strong id="income">$0.00</strong>
-        </div>
-        <div>
-          <span>Expenses</span>
-          <strong id="expenses">$0.00</strong>
-        </div>
-        <div>
-          <span>Balance</span>
-          <strong id="balance">$0.00</strong>
-        </div>
-      </div>
+
+      <footer class="footer-note">Synced automatically with your open Budgiet tab.</footer>
     </div>
 
     <script src="sidepanel.js"></script>
