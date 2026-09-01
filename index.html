@@ -82,6 +82,33 @@
         <div class="card balance-card">
           <div class="label">Balance</div>
           <div id="balance" class="value">$0.00</div>
+          <div class="balance-chart" id="balance-chart">
+            <div class="balance-chart-group" data-metric="balance">
+              <div class="balance-chart-track">
+                <div class="balance-bar previous" id="chart-bar-balance-previous"></div>
+                <div class="balance-bar current" id="chart-bar-balance-current"></div>
+              </div>
+              <span class="balance-chart-label">Balance</span>
+            </div>
+            <div class="balance-chart-group" data-metric="income">
+              <div class="balance-chart-track">
+                <div class="balance-bar previous" id="chart-bar-income-previous"></div>
+                <div class="balance-bar current" id="chart-bar-income-current"></div>
+              </div>
+              <span class="balance-chart-label">Income</span>
+            </div>
+            <div class="balance-chart-group" data-metric="expenses">
+              <div class="balance-chart-track">
+                <div class="balance-bar previous" id="chart-bar-expenses-previous"></div>
+                <div class="balance-bar current" id="chart-bar-expenses-current"></div>
+              </div>
+              <span class="balance-chart-label">Expenses</span>
+            </div>
+          </div>
+          <div id="balance-chart-legend" class="balance-chart-legend hidden">
+            <span class="legend-item"><span class="legend-swatch previous"></span>Previous period</span>
+            <span class="legend-item"><span class="legend-swatch current"></span>Current period</span>
+          </div>
         </div>
         <div class="card income-card">
           <div class="label">Income</div>

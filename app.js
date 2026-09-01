@@ -958,6 +958,7 @@ function updateSummary(){
   incomeEl.textContent = formatCurrency(incomes)
   expensesEl.textContent = formatCurrency(expenses)
   balanceEl.textContent = formatCurrency(balance)
+  updateBalanceChart(incomes, expenses, balance)
 
   const tree = document.getElementById('tree')
   const treeStatus = document.getElementById('tree-status')
@@ -1146,6 +1147,59 @@ function clearAll(){
 function updateUI(){
   updateSummary()
   renderTransactions()
+}
+
+// Renders the mini bar chart inside the balance card: current Balance/Income/Expenses,
+// plus their previous-period equivalents when a past period exists
+function updateBalanceChart(incomes, expenses, balance){
+  const chart = document.getElementById('balance-chart')
+  const legend = document.getElementById('balance-chart-legend')
+  if (!chart) return
+
+  const history = loadHistory()
+  const hasPrevious = history.length > 0
+  legend.classList.toggle('hidden', !hasPrevious)
+
+  let previous = { balance: 0, incomes: 0, expenses: 0 }
+  if (hasPrevious) {
+    const prevTx = history[0].transactions || []
+    const prevIncomes = prevTx.filter(t => t.type === 'income')
+      .reduce((s,t)=>s + convertAmount(Number(t.amount), t.currency || 'USD', displayCurrency), 0)
+    const prevExpenses = prevTx.filter(t => t.type === 'expense')
+      .reduce((s,t)=>s + convertAmount(Number(t.amount), t.currency || 'USD', displayCurrency), 0)
+    previous = { balance: prevIncomes - prevExpenses, incomes: prevIncomes, expenses: prevExpenses }
+  }
+
+  const current = { balance, incomes, expenses }
+  const maxBarHeight = 46
+  const allValues = [current.balance, current.incomes, current.expenses]
+  if (hasPrevious) allValues.push(previous.balance, previous.incomes, previous.expenses)
+  const maxAbs = Math.max(...allValues.map(Math.abs), 1)
+
+  const setBar = (bar, value) => {
+    if (!bar) return
+    const heightPx = Math.max(2, (Math.abs(value) / maxAbs) * maxBarHeight)
+    bar.style.height = `${heightPx}px`
+    bar.classList.toggle('negative', value < 0)
+    bar.style.bottom = value >= 0 ? '50%' : 'auto'
+    bar.style.top = value < 0 ? '50%' : 'auto'
+  }
+
+  const metrics = [
+    { key: 'balance', currentValue: current.balance, previousValue: previous.balance },
+    { key: 'income', currentValue: current.incomes, previousValue: previous.incomes },
+    { key: 'expenses', currentValue: current.expenses, previousValue: previous.expenses },
+  ]
+
+  metrics.forEach(({ key, currentValue, previousValue }) => {
+    const currentBar = document.getElementById(`chart-bar-${key}-current`)
+    const previousBar = document.getElementById(`chart-bar-${key}-previous`)
+    setBar(currentBar, currentValue)
+    if (previousBar) {
+      previousBar.classList.toggle('hidden', !hasPrevious)
+      if (hasPrevious) setBar(previousBar, previousValue)
+    }
+  })
 }
 
 form.addEventListener('submit', e => {

@@ -279,7 +279,7 @@ body {
 
 .main { display: grid; grid-template-columns: 1fr; gap: 18px; }
 
-.summary { display: flex; gap: 12px; flex-wrap: wrap; }
+.summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
 .summary-controls {
   display: flex;
@@ -308,7 +308,7 @@ body {
 }
 
 .card {
-  flex: 1; min-width: 140px; padding: 18px 16px; border-radius: 18px;
+  flex: 1; min-width: 0; padding: 18px 16px; border-radius: 18px;
   background: var(--panel);
   border: 1px solid rgba(255,255,255,0.8);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
@@ -325,7 +325,7 @@ body {
 }
 
 .card .value {
-  font-size: clamp(1rem, 12cqw, 2rem);
+  font-size: clamp(1rem, 11cqw, 1.7rem);
   font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
@@ -335,6 +335,102 @@ body {
 .income-card .value { color: var(--income); }
 .expense-card .value { color: var(--expense); }
 .balance-card .value { color: #0f766e; }
+
+.balance-card {
+  grid-column: 1 / -1;
+  padding: 22px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.balance-chart {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 4px;
+}
+
+.balance-chart-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.balance-chart-track {
+  position: relative;
+  width: 44px;
+  height: 92px;
+}
+
+.balance-chart-track::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  top: 50%;
+  height: 1px;
+  background: rgba(18, 63, 50, 0.18);
+}
+
+.balance-bar {
+  position: absolute;
+  width: 16px;
+  height: 2px;
+  border-radius: 5px;
+  background: #0f766e;
+  transition: height 0.35s ease;
+}
+
+.balance-bar.previous {
+  left: 4px;
+  background: rgba(15, 118, 110, 0.35);
+}
+
+.balance-bar.current {
+  right: 4px;
+  background: #0f766e;
+}
+
+.balance-chart-group[data-metric='income'] .balance-bar.current { background: var(--income); }
+.balance-chart-group[data-metric='income'] .balance-bar.previous { background: color-mix(in srgb, var(--income) 45%, transparent); }
+.balance-chart-group[data-metric='expenses'] .balance-bar.current { background: var(--expense); }
+.balance-chart-group[data-metric='expenses'] .balance-bar.previous { background: color-mix(in srgb, var(--expense) 45%, transparent); }
+
+.balance-bar.negative { background: var(--expense); }
+.balance-bar.hidden { display: none; }
+
+.balance-chart-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.balance-chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.balance-chart-legend.hidden { display: none; }
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background: #0f766e;
+}
+
+.legend-swatch.previous { background: rgba(15, 118, 110, 0.35); }
 
 .budget-health {
   display: flex;
@@ -2239,15 +2335,32 @@ body {
 @media (max-width: 640px) {
   body { padding: 18px 12px; }
   .app { padding: 18px 14px; }
-  .header { align-items: center; }
-  .budgie-header { align-items: flex-start; }
+  .header { align-items: center; padding-left: 44px; }
+  .menu-toggle-btn { width: 32px; height: 32px; font-size: 1rem; }
+  .header h1 { font-size: clamp(1.3rem, 6.5vw, 1.7rem); }
+  .header .tag { font-size: 0.74rem; }
+  .budgie-header { grid-template-columns: 36px auto 36px; column-gap: 4px; align-items: flex-start; }
+  .budgie-icon { width: 36px; height: 32px; }
+  .budgie-photo-frame { width: 36px; height: 32px; }
+  .budgie-photo-frame img { width: 38px; height: 30px; }
+  .logo-note { width: 11px; height: 5px; top: 13px; left: 30px; }
+  .logo-coin { width: 8px; height: 8px; top: 11px; left: 31px; }
   .entry .form { flex-direction: column; }
   .entry input, .entry select, .add-btn { width: 100%; }
-  .summary { gap: 10px; }
+  .summary { gap: 8px; }
+  .card { padding: 12px 10px; border-radius: 14px; }
+  .balance-card { padding: 18px 14px 14px; }
+  .balance-chart { gap: 16px; }
+  .balance-chart-track { width: 34px; height: 72px; }
   .controls { width: 100%; }
   .auth-area { width: 100%; }
   .auth-area input { flex: 1 1 120px; }
   .tx-amount { min-width: 72px; }
+}
+
+@media (max-width: 480px) {
+  .summary { grid-template-columns: 1fr; }
+  .card .value { font-size: clamp(1.1rem, 8vw, 1.6rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
