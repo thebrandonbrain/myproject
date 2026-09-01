@@ -2445,3 +2445,33 @@ html[data-theme='dark'] .side-menu-scrim {
 html[data-theme='dark'] .design-lock {
   background: rgba(18, 32, 29, 0.85);
 }
+
+/* Text that was hardcoded to a dark teal, invisible against the dark theme's dark panels */
+html[data-theme='dark'] .header h1,
+html[data-theme='dark'] .controls button,
+html[data-theme='dark'] #clear-btn,
+html[data-theme='dark'] .modal-header h2,
+html[data-theme='dark'] .history-header h3,
+html[data-theme='dark'] .history-stat .amount,
+html[data-theme='dark'] .tx-history-desc,
+html[data-theme='dark'] .settings-section h3,
+html[data-theme='dark'] .date-group label,
+html[data-theme='dark'] .summary-text,
+html[data-theme='dark'] .quick-presets h4,
+html[data-theme='dark'] .close-btn:hover,
+html[data-theme='dark'] .btn-secondary:hover,
+html[data-theme='dark'] .onboarding-skip:hover {
+  color: var(--text);
+}
+
+html[data-theme='dark'] .history-card,
+html[data-theme='dark'] .settings-btn,
+html[data-theme='dark'] .tx-edit-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--text);
+}
+
+html[data-theme='dark'] .history-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
